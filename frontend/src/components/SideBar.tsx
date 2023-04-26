@@ -26,7 +26,7 @@ const SideBarButton: React.FC<SideBarButtonProps> = ({
 };
 
 interface SideBarProps {
-  groups: String[];
+  groups: string[];
   selected: number;
   onButtonPress: (index: number) => void;
 }
@@ -47,7 +47,7 @@ const SideBar: React.FC<SideBarProps> = ({
       <div className="px-3 py-4">
         <ul className="space-y-2 font-medium">
           {groups.map((group, index) => (
-            <li>
+            <li key={group}>
               <SideBarButton
                 selected={index == selected}
                 onButtonPress={() => onButtonPress(index)}

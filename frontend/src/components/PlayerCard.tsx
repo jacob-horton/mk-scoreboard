@@ -7,7 +7,7 @@ interface PlayerCardProps {
 }
 
 const PlayerCard: React.FC<PlayerCardProps> = ({
-  stats: { name, wins, winPercentage, points, pointsPerGame },
+  stats: { name, wins, points, games },
   idx,
 }) => {
   return (
@@ -18,10 +18,10 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       <p className="grow text-2xl font-light">{name}</p>
       <p className="w-16 text-2xl font-light">{wins}</p>
       <p className="w-32 text-2xl font-light">
-        {(winPercentage * 100).toFixed(2)}%
+        {((wins / games) * 100).toFixed(2)}%
       </p>
       <p className="w-16 text-2xl font-light">{points}</p>
-      <p className="w-32 text-2xl font-light">{pointsPerGame.toFixed(2)}</p>
+      <p className="w-32 text-2xl font-light">{(points / games).toFixed(2)}</p>
     </div>
   );
 };
