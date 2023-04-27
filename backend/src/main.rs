@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{env, sync::Arc};
 
 use actix_cors::Cors;
 use actix_web::{http, web::Data, App, HttpServer};
@@ -14,10 +14,12 @@ pub struct AppState {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    dotenv::dotenv().ok();
+    let db_url = env::var("DATABASE_URL").unwrap();
     let pg_pool = Arc::new(
         PgPoolOptions::new()
             .max_connections(5)
-            .connect("postgres://username:password@localhost/mario_kart")
+            .connect(&db_url)
             .await
             .unwrap(),
     );

@@ -115,7 +115,6 @@ pub async fn add_game(
     data: Data<AppState>,
     payload: web::Json<Game>,
 ) -> Result<HttpResponse, Error> {
-    println!("ok");
     let mut transaction = data.pg_pool.begin().await.unwrap();
     sqlx::query!("INSERT INTO game DEFAULT VALUES;")
         .execute(&mut transaction)
