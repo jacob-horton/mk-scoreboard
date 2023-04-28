@@ -6,5 +6,4 @@ export interface Game {
 export interface Player {
   id: number;
   name: string;
-  games: number[]; // IDs of games
 }

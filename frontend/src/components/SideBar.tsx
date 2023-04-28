@@ -1,27 +1,28 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 interface SideBarButtonProps {
   selected: boolean;
-  onButtonPress: () => void;
-  children?: React.ReactNode;
+  name: string;
+  page: string;
 }
 
 const SideBarButton: React.FC<SideBarButtonProps> = ({
   selected,
-  children,
-  onButtonPress,
+  name,
+  page,
 }) => {
   const colour = selected
     ? "bg-blue-200 text-blue-500 hover:bg-blue-100"
     : "hover:bg-gray-200 text-gray-800";
 
   return (
-    <button
-      onClick={onButtonPress}
+    <Link
+      to={page}
       className={`flex w-full items-center py-2 px-4 rounded-lg transition ${colour}`}
     >
-      {children}
-    </button>
+      {name}
+    </Link>
   );
 };
 
@@ -31,11 +32,7 @@ interface SideBarProps {
   onButtonPress: (index: number) => void;
 }
 
-const SideBar: React.FC<SideBarProps> = ({
-  groups,
-  selected,
-  onButtonPress,
-}) => {
+const SideBar: React.FC<SideBarProps> = ({ groups }) => {
   return (
     <div className="bg-gray-100 w-64 h-screen border-r">
       <div className="flex m-4 items-center justify-between">
@@ -44,20 +41,19 @@ const SideBar: React.FC<SideBarProps> = ({
           +
         </button>
       </div>
-      <div className="px-3 py-4">
+      <nav className="px-3 py-4">
         <ul className="space-y-2 font-medium">
           {groups.map((group, index) => (
             <li key={group}>
               <SideBarButton
-                selected={index == selected}
-                onButtonPress={() => onButtonPress(index)}
-              >
-                {group}
-              </SideBarButton>
+                selected={true}
+                page={`/groups/${group}/scoreboard`}
+                name={group}
+              />
             </li>
           ))}
         </ul>
-      </div>
+      </nav>
     </div>
   );
 };
