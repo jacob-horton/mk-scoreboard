@@ -25,7 +25,20 @@ const AddGame = () => {
             throw new Error(response.statusText);
           }
 
-          setPlayers(await response.json().then((data) => data as Player[]));
+          const players = await response
+            .json()
+            .then((data) => data as Player[]);
+          players.sort((a, b) => {
+            // Put other at bottom, but sort rest alphabetically
+            if (a.name == "Other") {
+              return 1;
+            } else if (b.name == "Other") {
+              return -1;
+            } else {
+              return a.name < b.name ? -1 : 1;
+            }
+          });
+          setPlayers(players);
         }
       );
     }
