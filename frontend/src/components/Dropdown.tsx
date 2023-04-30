@@ -4,8 +4,9 @@ import IntTextBox from "./IntTextBox";
 
 interface ButtonProps {
   options: Player[];
-  label: string;
   disabled: number[];
+  label: string;
+  value: number | undefined;
 
   onPlayerChange: (playerId: number) => void;
   onScoreChange: (score: number) => void;
@@ -13,12 +14,12 @@ interface ButtonProps {
 
 const Dropdown: React.FC<ButtonProps> = ({
   options,
-  label,
   disabled,
+  label,
+  value,
   onPlayerChange,
   onScoreChange,
 }) => {
-  console.log("here");
   return (
     <div>
       <div className="w-26">
@@ -26,7 +27,8 @@ const Dropdown: React.FC<ButtonProps> = ({
       </div>
       <select
         name={label}
-        className="w-32 p-2 rounded-lg"
+        value={value}
+        className="w-40 p-2 rounded-lg"
         defaultValue=""
         onChange={(e) => onPlayerChange(parseInt(e.target.value))}
       >

@@ -90,6 +90,7 @@ const AddGame = () => {
                 .filter((id): id is number => id !== null)}
               options={players}
               label={`Player ${i + 1}`}
+              value={playerScores[i].playerId ?? undefined}
               onPlayerChange={(playerId) => {
                 setPlayerScores((prev) => {
                   let curr = [...prev];
@@ -108,12 +109,36 @@ const AddGame = () => {
           );
         })}
 
-        <div className="pt-4">
+        <div className="pt-4 space-x-4">
           <button
             className="px-4 py-2 rounded-lg transition bg-blue-500 text-white hover:bg-blue-400"
             type="submit"
           >
             Submit
+          </button>
+          <button
+            className="px-4 py-2 rounded-lg transition bg-gray-200 text-gray-800 hover:bg-gray-300"
+            onClick={async () => {
+              const ip = getIP();
+              await fetch(`http://${ip}:8080/game/previous_players`).then(
+                async (response) => {
+                  if (!response.ok) {
+                    throw new Error(response.statusText);
+                  }
+
+                  const players = await response
+                    .json()
+                    .then((data) => data as number[]);
+
+                  setPlayerScores((prev) => {
+                    return prev.map((p, i) => ({ ...p, playerId: players[i] }));
+                  });
+                }
+              );
+            }}
+            type="button"
+          >
+            Use previous players
           </button>
         </div>
       </Form>

@@ -1,12 +1,6 @@
 use std::collections::HashMap;
 
-use actix_web::{
-    get,
-    http::Error,
-    post,
-    web::{self, Data},
-    HttpResponse, Responder,
-};
+use actix_web::{get, web::Data, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
 use crate::AppState;
@@ -97,51 +91,4 @@ pub async fn get_player_stats(data: Data<AppState>) -> impl Responder {
         .collect();
 
     HttpResponse::Ok().json(players)
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Game {
-    scores: Vec<GameScore>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct GameScore {
-    player_id: i32,
-    score: i32,
-}
-
-#[post("/game/add")]
-pub async fn add_game(
-    data: Data<AppState>,
-    payload: web::Json<Game>,
-) -> Result<HttpResponse, Error> {
-    let mut transaction = data.pg_pool.begin().await.unwrap();
-    sqlx::query!("INSERT INTO game DEFAULT VALUES;")
-        .execute(&mut transaction)
-        .await
-        .unwrap();
-
-    let game_id = sqlx::query!("SELECT currval(pg_get_serial_sequence('game','id')) as id;")
-        .fetch_one(&mut transaction)
-        .await
-        .unwrap()
-        .id
-        .unwrap();
-
-    for score in &payload.scores {
-        sqlx::query!(
-            "INSERT INTO game_score (score, game_id, player_id) VALUES ($1, $2, $3)",
-            score.score,
-            game_id as i32,
-            score.player_id,
-        )
-        .execute(&mut transaction)
-        .await
-        .unwrap();
-    }
-
-    transaction.commit().await.unwrap();
-
-    Ok(HttpResponse::Ok().body("Game added successfully"))
 }
