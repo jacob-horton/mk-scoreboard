@@ -15,7 +15,6 @@ export interface Player {
 
 const Scoreboard = () => {
   const { groupName } = useLoaderData();
-  console.log(groupName);
 
   const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
   useEffect(() => {

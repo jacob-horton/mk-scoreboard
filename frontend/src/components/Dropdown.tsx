@@ -17,7 +17,6 @@ const Dropdown: React.FC<ButtonProps> = ({
   onPlayerChange,
   onScoreChange,
 }) => {
-  console.log("rendering");
   return (
     <div>
       <div className="w-26">

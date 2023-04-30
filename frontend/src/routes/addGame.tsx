@@ -21,7 +21,6 @@ const AddGame = () => {
   useEffect(() => {
     async function getStats() {
       const ip = getIP();
-      console.log(ip);
       return fetch(`http://${ip}:8080/players/list`).then(async (response) => {
         if (!response.ok) {
           throw new Error(response.statusText);
@@ -87,7 +86,6 @@ const AddGame = () => {
             }));
 
             const ip = getIP();
-            console.log(ip);
             await fetch(`http://${ip}:8080/game/add`, {
               method: "POST",
               body: JSON.stringify({ scores: body }),
