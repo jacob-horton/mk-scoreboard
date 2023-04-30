@@ -9,7 +9,8 @@ export interface PlayerStats {
 }
 
 export async function getPlayerStats(): Promise<PlayerStats[]> {
-  return fetch("http://localhost:8080/players/stats").then(async (response) => {
+  const ip = process.env.SERVER_ADDRESS;
+  return fetch(`http://${ip}:8080/players/stats`).then(async (response) => {
     if (!response.ok) {
       console.log("nope");
       throw new Error(response.statusText);
