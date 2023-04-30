@@ -15,7 +15,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       <p className="w-12 text-center pr-4 text-gray-400 text-2xl font-light">
         {idx + 1}
       </p>
-      <p className="grow text-2xl font-light">{name}</p>
+      <p className="grow text-2xl font-light pr-4">{name}</p>
       <p className="w-20 text-2xl font-light">{wins}</p>
       <p className="w-36 text-2xl font-light">
         {((wins / games) * 100).toFixed(2)}%
