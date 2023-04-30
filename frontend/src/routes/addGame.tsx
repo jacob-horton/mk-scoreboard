@@ -61,6 +61,15 @@ const AddGame = () => {
             return;
           }
 
+          // Check if any duplicate ids
+          if (
+            new Set(playerScores.map((p) => p.playerId)).size <
+            playerScores.length
+          ) {
+            alert("Duplicate players are not allowed");
+            return;
+          }
+
           const ip = getIP();
           await fetch(`http://${ip}:8080/game/add`, {
             method: "POST",
@@ -76,19 +85,23 @@ const AddGame = () => {
             // TODO: only allow non-selected players - disabled currently doesn't work
             <Dropdown
               key={i}
-              disabled={[]}
+              disabled={playerScores
+                .map(({ playerId }) => playerId)
+                .filter((id): id is number => id !== null)}
               options={players}
               label={`Player ${i + 1}`}
               onPlayerChange={(playerId) => {
                 setPlayerScores((prev) => {
-                  prev[i] = { ...prev[i], playerId };
-                  return prev;
+                  let curr = [...prev];
+                  curr[i] = { ...curr[i], playerId };
+                  return curr;
                 });
               }}
               onScoreChange={(score) => {
                 setPlayerScores((prev) => {
-                  prev[i] = { ...prev[i], score };
-                  return prev;
+                  let curr = [...prev];
+                  curr[i] = { ...curr[i], score };
+                  return curr;
                 });
               }}
             />
