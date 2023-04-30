@@ -1,4 +1,4 @@
-import { Game, Player } from "./types";
+import getIP from "./ip";
 
 export interface PlayerStats {
   id: number;
@@ -9,8 +9,9 @@ export interface PlayerStats {
 }
 
 export async function getPlayerStats(): Promise<PlayerStats[]> {
-  const ip = process.env.SERVER_ADDRESS;
-  return fetch(`http://${ip}:8080/players/stats`).then(async (response) => {
+  const ips = getIP();
+  console.log(ips);
+  return fetch(`http://localhost:8080/players/stats`).then(async (response) => {
     if (!response.ok) {
       console.log("nope");
       throw new Error(response.statusText);

@@ -3,6 +3,7 @@ import { PlayerStats, getPlayerStats } from "../data/playerStats";
 import Dropdown from "../components/Dropdown";
 import { Link, useLoaderData } from "react-router-dom";
 import { Player } from "../data/types";
+import getIP from "../data/ip";
 
 export async function loader({ params }) {
   return { groupName: params.groupName };
@@ -19,25 +20,30 @@ const AddGame = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   useEffect(() => {
     async function getStats() {
-      const ip = process.env.SERVER_ADDRESS;
-      return fetch(`http://${ip}:8080/players/list`).then(async (response) => {
-        if (!response.ok) {
-          throw new Error(response.statusText);
-        }
-
-        const players = await response.json().then((data) => data as Player[]);
-        players.sort((a, b) => {
-          // Put other at bottom, but sort rest alphabetically
-          if (a.name == "Other") {
-            return 1;
-          } else if (b.name == "Other") {
-            return -1;
-          } else {
-            return a.name < b.name ? -1 : 1;
+      const ips = getIP();
+      console.log(ips);
+      return fetch(`http://localhost:8080/players/list`).then(
+        async (response) => {
+          if (!response.ok) {
+            throw new Error(response.statusText);
           }
-        });
-        setPlayers(players);
-      });
+
+          const players = await response
+            .json()
+            .then((data) => data as Player[]);
+          players.sort((a, b) => {
+            // Put other at bottom, but sort rest alphabetically
+            if (a.name == "Other") {
+              return 1;
+            } else if (b.name == "Other") {
+              return -1;
+            } else {
+              return a.name < b.name ? -1 : 1;
+            }
+          });
+          setPlayers(players);
+        }
+      );
     }
 
     getStats();
@@ -84,8 +90,9 @@ const AddGame = () => {
               score: scores[i],
             }));
 
-            const ip = process.env.SERVER_ADDRESS;
-            await fetch(`http://${ip}:8080/game/add`, {
+            const ips = getIP();
+            console.log(ips);
+            await fetch(`http://localhost:8080/game/add`, {
               method: "POST",
               body: JSON.stringify({ scores: body }),
               headers: { "Content-Type": "application/json" },
