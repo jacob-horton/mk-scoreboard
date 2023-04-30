@@ -1,28 +1,24 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 interface SideBarButtonProps {
-  selected: boolean;
   name: string;
   page: string;
 }
 
-const SideBarButton: React.FC<SideBarButtonProps> = ({
-  selected,
-  name,
-  page,
-}) => {
-  const colour = selected
-    ? "bg-blue-200 text-blue-500 hover:bg-blue-100"
-    : "hover:bg-gray-200 text-gray-800";
-
+const SideBarButton: React.FC<SideBarButtonProps> = ({ name, page }) => {
   return (
-    <Link
+    <NavLink
       to={page}
-      className={`flex w-full items-center py-2 px-4 rounded-lg transition ${colour}`}
+      className={({ isActive }) => {
+        const colour = isActive
+          ? "bg-blue-200 text-blue-500 hover:bg-blue-100"
+          : "hover:bg-gray-200 text-gray-800";
+        return `flex w-full items-center py-2 px-4 rounded-lg transition ${colour}`;
+      }}
     >
       {name}
-    </Link>
+    </NavLink>
   );
 };
 
@@ -43,10 +39,9 @@ const SideBar: React.FC<SideBarProps> = ({ groups }) => {
       </div>
       <nav className="px-3 py-4">
         <ul className="space-y-2 font-medium">
-          {groups.map((group, index) => (
+          {groups.map((group) => (
             <li key={group}>
               <SideBarButton
-                selected={true}
                 page={`/groups/${group}/scoreboard`}
                 name={group}
               />
