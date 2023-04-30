@@ -9,9 +9,9 @@ export interface PlayerStats {
 }
 
 export async function getPlayerStats(): Promise<PlayerStats[]> {
-  const ips = getIP();
-  console.log(ips);
-  return fetch(`http://localhost:8080/players/stats`).then(async (response) => {
+  const ip = getIP();
+  console.log(ip);
+  return fetch(`http://${ip}:8080/players/stats`).then(async (response) => {
     if (!response.ok) {
       console.log("nope");
       throw new Error(response.statusText);

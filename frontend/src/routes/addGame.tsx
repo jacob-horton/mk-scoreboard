@@ -20,30 +20,26 @@ const AddGame = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   useEffect(() => {
     async function getStats() {
-      const ips = getIP();
-      console.log(ips);
-      return fetch(`http://localhost:8080/players/list`).then(
-        async (response) => {
-          if (!response.ok) {
-            throw new Error(response.statusText);
-          }
-
-          const players = await response
-            .json()
-            .then((data) => data as Player[]);
-          players.sort((a, b) => {
-            // Put other at bottom, but sort rest alphabetically
-            if (a.name == "Other") {
-              return 1;
-            } else if (b.name == "Other") {
-              return -1;
-            } else {
-              return a.name < b.name ? -1 : 1;
-            }
-          });
-          setPlayers(players);
+      const ip = getIP();
+      console.log(ip);
+      return fetch(`http://${ip}:8080/players/list`).then(async (response) => {
+        if (!response.ok) {
+          throw new Error(response.statusText);
         }
-      );
+
+        const players = await response.json().then((data) => data as Player[]);
+        players.sort((a, b) => {
+          // Put other at bottom, but sort rest alphabetically
+          if (a.name == "Other") {
+            return 1;
+          } else if (b.name == "Other") {
+            return -1;
+          } else {
+            return a.name < b.name ? -1 : 1;
+          }
+        });
+        setPlayers(players);
+      });
     }
 
     getStats();
@@ -90,9 +86,9 @@ const AddGame = () => {
               score: scores[i],
             }));
 
-            const ips = getIP();
-            console.log(ips);
-            await fetch(`http://localhost:8080/game/add`, {
+            const ip = getIP();
+            console.log(ip);
+            await fetch(`http://${ip}:8080/game/add`, {
               method: "POST",
               body: JSON.stringify({ scores: body }),
               headers: { "Content-Type": "application/json" },
