@@ -1,21 +1,27 @@
 import { useEffect, useState } from "react";
-import { PlayerStats, getPlayerStats } from "../data/playerStats";
 import Dropdown from "../components/Dropdown";
 import { Link, useLoaderData } from "react-router-dom";
 import { Player } from "../data/types";
 import getIP from "../data/ip";
 
-export async function loader({ params }) {
+export async function loader({ params }: { params: { groupName: string } }) {
   return { groupName: params.groupName };
 }
 
-const AddGame = () => {
-  const { groupName } = useLoaderData();
+interface PlayerScore {
+  playerId: number | null;
+  score: number;
+}
 
-  const [selectedPlayers, setSelectedPlayers] = useState<
-    (number | undefined)[]
-  >([undefined, undefined, undefined, undefined]);
-  const [scores, setScores] = useState<number[]>([0, 0, 0, 0]);
+const AddGame = () => {
+  const { groupName } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
+
+  const [playerScores, setPlayerScores] = useState<PlayerScore[]>([
+    { playerId: null, score: 0 },
+    { playerId: null, score: 0 },
+    { playerId: null, score: 0 },
+    { playerId: null, score: 0 },
+  ]);
 
   const [players, setPlayers] = useState<Player[]>([]);
   useEffect(() => {
@@ -51,18 +57,18 @@ const AddGame = () => {
           // TODO: only allow non-selected players - disabled currently doesn't work
           <Dropdown
             key={i}
-            disabled={selectedPlayers.filter((p) => p !== undefined)}
+            disabled={[]}
             options={players}
             label={`Player ${i + 1}`}
-            onPlayerChange={(player) =>
-              setSelectedPlayers((prev) => {
-                prev[i] = player;
+            onPlayerChange={(playerId) => {
+              setPlayerScores((prev) => {
+                prev[i] = { ...prev[i], playerId };
                 return prev;
-              })
-            }
+              });
+            }}
             onScoreChange={(score) =>
-              setScores((prev) => {
-                prev[i] = score;
+              setPlayerScores((prev) => {
+                prev[i] = { ...prev[i], score };
                 return prev;
               })
             }
@@ -75,20 +81,17 @@ const AddGame = () => {
           to={`/groups/${groupName}/scoreboard`}
           className="px-4 py-2 rounded-lg transition bg-blue-500 text-white hover:bg-blue-400"
           onClick={async () => {
-            if (selectedPlayers.includes(undefined) || scores.includes(0)) {
+            if (
+              playerScores.some((p) => p.playerId === null || p.score === 0)
+            ) {
               console.log("no");
               return;
             }
 
-            const body = selectedPlayers.map((p, i) => ({
-              player_id: p,
-              score: scores[i],
-            }));
-
             const ip = getIP();
             await fetch(`http://${ip}:8080/game/add`, {
               method: "POST",
-              body: JSON.stringify({ scores: body }),
+              body: JSON.stringify({ scores: playerScores }),
               headers: { "Content-Type": "application/json" },
             });
           }}

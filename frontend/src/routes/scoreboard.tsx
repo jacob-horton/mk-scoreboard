@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import Button from "../components/Button";
 import PlayerCard from "../components/PlayerCard";
 import { PlayerStats, getPlayerStats } from "../data/playerStats";
 import { Link, useLoaderData } from "react-router-dom";
 
-export async function loader({ params }) {
+export async function loader({ params }: { params: { groupName: string } }) {
   return { groupName: params.groupName };
 }
 
@@ -14,7 +13,7 @@ export interface Player {
 }
 
 const Scoreboard = () => {
-  const { groupName } = useLoaderData();
+  const { groupName } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
 
   const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
   useEffect(() => {
@@ -33,12 +32,12 @@ const Scoreboard = () => {
     <div className="px-4 pt-4 grow">
       <h1 className="text-4xl font-light pr-4 pb-10">{groupName}</h1>
       <div className="text-gray-400 flex px-4">
-        <p className="w-10">No.</p>
+        <p className="w-12">No.</p>
         <p className="grow pr-4">Name</p>
-        <p className="w-16">Wins</p>
-        <p className="w-32">Win Percentage</p>
-        <p className="w-16">Points</p>
-        <p className="w-32">Points Per Game</p>
+        <p className="w-20">Wins</p>
+        <p className="w-36">Win Percentage</p>
+        <p className="w-20">Points</p>
+        <p className="w-36">Points Per Game</p>
       </div>
 
       {playerStats.map((p, i) => (

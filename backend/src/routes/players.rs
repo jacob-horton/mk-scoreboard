@@ -105,6 +105,7 @@ pub struct Game {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct GameScore {
     player_id: i32,
     score: i32,
