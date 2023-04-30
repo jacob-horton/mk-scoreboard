@@ -1,5 +1,6 @@
 import React from "react";
 import { Player } from "../data/types";
+import IntTextBox from "./IntTextBox";
 
 interface ButtonProps {
   options: Player[];
@@ -44,11 +45,7 @@ const Dropdown: React.FC<ButtonProps> = ({
           );
         })}
       </select>
-      <input
-        className="w-14 bg-gray-300 ml-4 p-2 rounded-lg"
-        defaultValue={0}
-        onChange={(e) => onScoreChange(parseInt(e.target.value))}
-      />
+      <IntTextBox onChange={onScoreChange} />
     </div>
   );
 };
