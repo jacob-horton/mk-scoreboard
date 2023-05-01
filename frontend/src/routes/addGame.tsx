@@ -1,33 +1,46 @@
 import { useState } from "react";
 import Dropdown from "../components/Dropdown";
 import { Form, useLoaderData, useNavigate } from "react-router-dom";
-import { Player } from "../data/types";
+import { Group, Player } from "../data/types";
 import getIP from "../data/ip";
 
-export async function loader({ params }: { params: { groupName: string } }) {
+export async function loader({ params }: { params: { groupId: string } }) {
   const ip = getIP();
-  const players = await fetch(`http://${ip}:8080/players/list`).then(
-    async (response) => {
-      if (!response.ok) {
-        throw new Error(response.statusText);
-      }
+  let url = new URL(`http://${ip}:8080/groups/list_players`);
+  url.searchParams.append("id", params.groupId);
 
-      const players = await response.json().then((data) => data as Player[]);
-      players.sort((a, b) => {
-        // Put other at bottom, but sort rest alphabetically
-        if (a.name == "Other") {
-          return 1;
-        } else if (b.name == "Other") {
-          return -1;
-        } else {
-          return a.name < b.name ? -1 : 1;
-        }
-      });
-      return players;
+  const players = await fetch(url).then(async (response) => {
+    if (!response.ok) {
+      throw new Error(response.statusText);
     }
-  );
 
-  return { groupName: params.groupName, players };
+    const players = await response.json().then((data) => data as Player[]);
+    players.sort((a, b) => {
+      // Put other at bottom, but sort rest alphabetically
+      if (a.name == "Other") {
+        return 1;
+      } else if (b.name == "Other") {
+        return -1;
+      } else {
+        return a.name < b.name ? -1 : 1;
+      }
+    });
+    return players;
+  });
+
+  url = new URL(`http://${ip}:8080/groups/get`);
+  url.searchParams.append("id", params.groupId);
+
+  const group = await fetch(url).then(async (response) => {
+    if (!response.ok) {
+      console.log("nope");
+      throw new Error(response.statusText);
+    }
+
+    return response.json().then((data) => data as Group);
+  });
+
+  return { group, players };
 }
 
 interface PlayerScore {
@@ -36,7 +49,7 @@ interface PlayerScore {
 }
 
 const AddGame = () => {
-  const { groupName, players } = useLoaderData() as Awaited<
+  const { group, players } = useLoaderData() as Awaited<
     ReturnType<typeof loader>
   >;
   const navigate = useNavigate();
@@ -80,11 +93,11 @@ const AddGame = () => {
           const ip = getIP();
           await fetch(`http://${ip}:8080/game/add`, {
             method: "POST",
-            body: JSON.stringify({ scores: playerScores }),
+            body: JSON.stringify({ scores: playerScores, groupId: group.id }),
             headers: { "Content-Type": "application/json" },
           });
 
-          navigate(`/groups/${groupName}/scoreboard`);
+          navigate(`/groups/${group.id}/scoreboard`);
         }}
       >
         {Array.from(Array(4).keys()).map((i) => {
@@ -127,21 +140,22 @@ const AddGame = () => {
             className="px-4 py-2 rounded-lg transition bg-gray-200 text-gray-800 hover:bg-gray-300"
             onClick={async () => {
               const ip = getIP();
-              await fetch(`http://${ip}:8080/game/previous_players`).then(
-                async (response) => {
-                  if (!response.ok) {
-                    throw new Error(response.statusText);
-                  }
+              const url = new URL(`http://${ip}:8080/game/previous_players`);
+              url.searchParams.append("groupId", group.id.toString());
 
-                  const players = await response
-                    .json()
-                    .then((data) => data as number[]);
-
-                  setPlayerScores((prev) => {
-                    return prev.map((p, i) => ({ ...p, playerId: players[i] }));
-                  });
+              await fetch(url).then(async (response) => {
+                if (!response.ok) {
+                  throw new Error(response.statusText);
                 }
-              );
+
+                const players = await response
+                  .json()
+                  .then((data) => data as number[]);
+
+                setPlayerScores((prev) => {
+                  return prev.map((p, i) => ({ ...p, playerId: players[i] }));
+                });
+              });
             }}
             type="button"
           >

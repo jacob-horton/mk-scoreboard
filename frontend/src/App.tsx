@@ -9,7 +9,7 @@ export async function loader() {
 }
 
 const App = () => {
-  const { groups } = useLoaderData();
+  const { groups } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
   const [sideBarOpen, setSideBarOpen] = useState(false);
   const hidden = sideBarOpen ? "" : "hidden";
 

@@ -15,12 +15,12 @@ const router = createBrowserRouter([
     loader: appLoader,
     children: [
       {
-        path: "groups/:groupName/scoreboard",
+        path: "groups/:groupId/scoreboard",
         element: <Scoreboard />,
         loader: groupLoader,
       },
       {
-        path: "groups/:groupName/add-game",
+        path: "groups/:groupId/add-game",
         element: <AddGame />,
         loader: addGameLoader,
       },

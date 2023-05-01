@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { Group } from "../data/types";
 
 interface SideBarButtonProps {
   name: string;
@@ -29,7 +30,7 @@ const SideBarButton: React.FC<SideBarButtonProps> = ({
 };
 
 interface SideBarProps {
-  groups: string[];
+  groups: Group[];
   closeable: boolean;
   onClose?: () => void;
   className?: string;
@@ -62,11 +63,11 @@ const SideBar: React.FC<SideBarProps> = ({
       <nav className="px-3 py-4">
         <ul className="space-y-2 font-medium">
           {groups.map((group) => (
-            <li key={group}>
+            <li key={group.id}>
               <SideBarButton
-                page={`/groups/${group}/scoreboard`}
+                page={`/groups/${group.id}/scoreboard`}
                 onClick={onClose}
-                name={group}
+                name={group.name}
               />
             </li>
           ))}

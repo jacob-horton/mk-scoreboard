@@ -2,7 +2,7 @@ use actix_web::{
     get,
     http::Error,
     post,
-    web::{self, Data},
+    web::{self, Data, Query},
     HttpResponse, Responder,
 };
 use serde::{Deserialize, Serialize};
@@ -10,8 +10,10 @@ use serde::{Deserialize, Serialize};
 use crate::AppState;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Game {
     scores: Vec<GameScore>,
+    group_id: i32,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -26,8 +28,9 @@ pub async fn add_game(
     data: Data<AppState>,
     payload: web::Json<Game>,
 ) -> Result<HttpResponse, Error> {
+    println!("{data:?}");
     let mut transaction = data.pg_pool.begin().await.unwrap();
-    sqlx::query!("INSERT INTO game DEFAULT VALUES;")
+    sqlx::query!("INSERT INTO game (group_id) VALUES ($1);", payload.group_id)
         .execute(&mut transaction)
         .await
         .unwrap();
@@ -56,15 +59,26 @@ pub async fn add_game(
     Ok(HttpResponse::Ok().body("Game added successfully"))
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct GroupIdData {
+    group_id: i32,
+}
+
 #[get("/game/previous_players")]
-pub async fn get_previous_players(data: Data<AppState>) -> impl Responder {
+pub async fn get_previous_players(
+    data: Data<AppState>,
+    info: Query<GroupIdData>,
+) -> impl Responder {
     let players = sqlx::query!(
         "SELECT player_id
         FROM game
         INNER JOIN game_score
             ON game.id = game_score.game_id
+        WHERE group_id = $1
         ORDER BY date DESC
-        LIMIT 4"
+        LIMIT 4",
+        info.group_id
     )
     .fetch_all(data.pg_pool.as_ref())
     .await

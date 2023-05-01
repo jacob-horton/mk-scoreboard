@@ -7,3 +7,9 @@ export interface Player {
   id: number;
   name: string;
 }
+
+export interface Group {
+  id: number;
+  name: string;
+  maxScore: number | null;
+}

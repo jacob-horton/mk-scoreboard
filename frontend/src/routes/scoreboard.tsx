@@ -2,9 +2,22 @@ import { useEffect, useState } from "react";
 import PlayerCard from "../components/PlayerCard";
 import { PlayerStats, getPlayerStats } from "../data/playerStats";
 import { Link, useLoaderData } from "react-router-dom";
+import getIP from "../data/ip";
+import { Group } from "../data/types";
 
-export async function loader({ params }: { params: { groupName: string } }) {
-  return { groupName: params.groupName };
+export async function loader({ params }: { params: { groupId: string } }) {
+  const ip = getIP();
+  const url = new URL(`http://${ip}:8080/groups/get`);
+  url.searchParams.append("id", params.groupId);
+
+  return fetch(url).then(async (response) => {
+    if (!response.ok) {
+      console.log("nope");
+      throw new Error(response.statusText);
+    }
+
+    return response.json().then((data) => data as Group);
+  });
 }
 
 export interface Player {
@@ -13,12 +26,12 @@ export interface Player {
 }
 
 const Scoreboard = () => {
-  const { groupName } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
+  const { id, name } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
 
   const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
   useEffect(() => {
     async function getStats() {
-      const stats = await getPlayerStats();
+      const stats = await getPlayerStats(id);
 
       // Sort by points per game
       stats.sort((a, b) => (a.points / a.games < b.points / b.games ? 1 : -1));
@@ -26,11 +39,11 @@ const Scoreboard = () => {
     }
 
     getStats();
-  }, []);
+  }, [id]);
 
   return (
     <div className="px-4 pt-4 grow flex-col flex h-screen">
-      <h1 className="text-4xl font-light pr-4 pb-10">{groupName}</h1>
+      <h1 className="text-4xl font-light pr-4 pb-10">{name}</h1>
       <div className="text-gray-400 flex md:px-6 px-4">
         <p className="w-12 hidden sm:block">No.</p>
         <p className="grow pr-4">Name</p>
@@ -50,7 +63,7 @@ const Scoreboard = () => {
       <div className="fixed bottom-0 right-0 pr-4 pb-4 space-x-4">
         <Link
           className="px-4 py-2 rounded-lg transition bg-blue-500 text-white hover:bg-blue-400 whitespace-nowrap"
-          to={`/groups/${groupName}/add-game`}
+          to={`/groups/${id}/add-game`}
         >
           + New Game
         </Link>
