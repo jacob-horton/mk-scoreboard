@@ -11,7 +11,7 @@ export async function loader() {
 const App = () => {
   const { groups } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
   const [sideBarOpen, setSideBarOpen] = useState(false);
-  const hiddenClasses = sideBarOpen ? "left-0" : "left-[-260px] invisible";
+  const hiddenClasses = sideBarOpen ? "left-0" : "-left-64";
 
   return (
     <div className="h-screen flex bg-gray-50">
