@@ -17,19 +17,22 @@ const SimpleScoreboard = () => {
   }, []);
 
   return (
-    <div className="px-4 pt-4 grow">
+    <div className="px-4 pt-4 grow flex-col flex h-screen">
       <h1 className="text-4xl font-light pr-4 pb-10">Old Scores</h1>
-      <div className="text-gray-400 flex px-4">
-        <p className="w-12">No.</p>
+      <div className="text-gray-400 flex md:px-6 px-4">
+        <p className="w-12 hidden sm:block">No.</p>
         <p className="grow pr-4">Name</p>
-        <p className="w-20">Wins</p>
-        <p className="w-36">Win Percentage</p>
-        <p className="w-20">Games</p>
+        <p className="w-20 hidden sm:block">Wins</p>
+        <p className="w-36 hidden sm:block">Win Percentage</p>
+        <p className="w-20 block sm:hidden">Win %</p>
+        <p className="w-20 sm:w-36">Games</p>
       </div>
 
-      {playerStats.map((p, i) => (
-        <SimplePlayerCard stats={p} idx={i} key={p.name} />
-      ))}
+      <div className="overflow-scroll px-2 pt-1 pb-6">
+        {playerStats.map((p, i) => (
+          <SimplePlayerCard stats={p} idx={i} key={p.name} />
+        ))}
+      </div>
     </div>
   );
 };
