@@ -70,6 +70,13 @@ const AddGame = () => {
             return;
           }
 
+          // TODO: make adjustable
+          const maxScore = 6 * 15;
+          if (playerScores.some((p) => p.score > maxScore)) {
+            alert(`Max possible score is ${maxScore}`);
+            return;
+          }
+
           const ip = getIP();
           await fetch(`http://${ip}:8080/game/add`, {
             method: "POST",
