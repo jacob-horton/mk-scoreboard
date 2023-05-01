@@ -10,10 +10,24 @@ import SimpleScoreboard from "./routes/simpleScoreboard.tsx";
 // TODO: use group ID
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: "/*",
     element: <App />,
     loader: appLoader,
+    errorElement: <p>404 Page Not Found</p>,
     children: [
+      {
+        path: "",
+        element: (
+          <div className="flex grow pt-8 flex-col space-y-4">
+            <h1 className="grow text-center text-4xl font-light">
+              Welcome to Mario Kart Scoreboards!
+            </h1>
+            <p className="grow text-center">
+              Please create or select a group to get started
+            </p>
+          </div>
+        ),
+      },
       {
         path: "groups/:groupId/scoreboard",
         element: <Scoreboard />,
