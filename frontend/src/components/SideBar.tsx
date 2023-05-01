@@ -30,7 +30,7 @@ interface SideBarProps {
 
 const SideBar: React.FC<SideBarProps> = ({ groups }) => {
   return (
-    <div className="bg-gray-100 w-64 h-screen border-r">
+    <div className="bg-gray-100 w-64 border-r">
       <div className="flex m-4 items-center justify-between">
         <h1 className="text-4xl font-light pr-4">Groups</h1>
         <button className="w-8 h-8 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition">
@@ -47,6 +47,9 @@ const SideBar: React.FC<SideBarProps> = ({ groups }) => {
               />
             </li>
           ))}
+          <li key={"Old Scores"}>
+            <SideBarButton page={`/old-scores`} name="Old Scores" />
+          </li>
         </ul>
       </nav>
     </div>

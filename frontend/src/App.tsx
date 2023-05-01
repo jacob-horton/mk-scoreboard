@@ -13,7 +13,7 @@ const App = () => {
   const { groups } = useLoaderData();
 
   return (
-    <div className="flex bg-gray-50">
+    <div className="h-screen flex bg-gray-50">
       <SideBar
         groups={groups}
         selected={selected}
