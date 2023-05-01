@@ -11,20 +11,20 @@ export async function loader() {
 const App = () => {
   const { groups } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
   const [sideBarOpen, setSideBarOpen] = useState(false);
-  const hidden = sideBarOpen ? "" : "hidden";
+  const hiddenClasses = sideBarOpen ? "left-0" : "left-[-260px] invisible";
 
   return (
     <div className="h-screen flex bg-gray-50">
       <SideBar
         groups={groups}
         closeable={true}
-        onClose={() => setSideBarOpen(() => false)}
-        className={`md:hidden fixed z-10 h-screen ${hidden}`}
+        onClose={() => setSideBarOpen(false)}
+        className={`md:hidden fixed z-10 h-screen transition-all ${hiddenClasses}`}
       />
       <SideBar
         groups={groups}
         closeable={false}
-        className={`hidden md:block ${hidden}`}
+        className={`hidden md:block ${hiddenClasses}`}
       />
       <button
         className="bg-gray-200 hover:bg-gray-300 w-8 h-8 rounded-lg ml-4 mt-5 block md:hidden shrink-0"
