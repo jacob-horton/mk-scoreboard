@@ -116,7 +116,9 @@ const AddGame = () => {
 
           // Hehe
           if (questionWinner(playerScores, [6, 7])) {
-            alert("Are you sure you haven't made a mistake on that one?");
+            alert(
+              "Are you sure you haven't made a mistake on that one? (hehe)"
+            );
           }
 
           const ip = getIP();
