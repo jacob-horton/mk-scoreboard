@@ -76,13 +76,11 @@ pub async fn get_group_stats(
             game_score.game_id as game_id, 
             player.name as player_name,
             game_score.score as points
-        FROM player_group
-        INNER JOIN player ON player.id = player_group.player_id
-        INNER JOIN game_score ON game_score.player_id = player_group.player_id
+        FROM player
+        INNER JOIN game_score ON game_score.player_id = player.id
         INNER JOIN game ON game_score.game_id = game.id
-        WHERE player_group.group_id = $1
-        ORDER BY date DESC
-        ",
+        WHERE game.group_id = $1
+        ORDER BY date DESC",
         info.id
     )
     .fetch_all(data.pg_pool.as_ref())
