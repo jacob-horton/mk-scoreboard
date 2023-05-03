@@ -48,6 +48,30 @@ interface PlayerScore {
   score: number;
 }
 
+function questionWinner(playerScores: PlayerScore[], question: number[]) {
+  if (playerScores.some((p) => p.playerId === null)) {
+    return false;
+  }
+
+  let winners: number[] = [];
+  let maxScore = 0;
+
+  for (let playerScore of playerScores) {
+    if (playerScore.score > maxScore) {
+      maxScore = playerScore.score;
+      winners = [playerScore.playerId as number]; // Reset list and put only this player in
+    } else if (playerScore.score == maxScore) {
+      winners.push(playerScore.playerId as number); // Append player to winners - draw
+    }
+  }
+
+  if (question.some((q) => winners.includes(q))) {
+    return true;
+  }
+
+  return false;
+}
+
 const AddGame = () => {
   const { group, players } = useLoaderData() as Awaited<
     ReturnType<typeof loader>
@@ -90,6 +114,11 @@ const AddGame = () => {
             return;
           }
 
+          // Hehe
+          if (questionWinner(playerScores, [6, 7])) {
+            alert("Are you sure you haven't made a mistake on that one?");
+          }
+
           const ip = getIP();
           await fetch(`http://${ip}:8080/game/add`, {
             method: "POST",
@@ -102,7 +131,6 @@ const AddGame = () => {
       >
         {Array.from(Array(4).keys()).map((i) => {
           return (
-            // TODO: only allow non-selected players - disabled currently doesn't work
             <Dropdown
               key={i}
               disabled={playerScores
