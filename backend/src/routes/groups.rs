@@ -6,6 +6,7 @@ use actix_web::{
     HttpResponse, Responder,
 };
 use serde::{Deserialize, Serialize};
+use sqlx::{Pool, Postgres};
 
 use crate::{
     routes::players::{Player, PlayerStats},
@@ -57,11 +58,38 @@ pub async fn get_group(data: Data<AppState>, info: web::Query<GroupIdData>) -> i
     })
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct GetStatsData {
+    id: i32,
+    n: Option<i32>, // Number of games
+}
+
+async fn get_last_n_games(pool: &Pool<Postgres>, group_id: i32, n: Option<i32>) -> Vec<i32> {
+    sqlx::query!(
+        "SELECT id
+        FROM game
+        WHERE group_id = $1
+        ORDER BY date DESC
+        LIMIT $2",
+        group_id,
+        n.map(|x| x as i64)
+    )
+    .fetch_all(pool)
+    .await
+    .unwrap()
+    .iter()
+    .map(|x| x.id)
+    .collect()
+}
+
 #[get("/groups/stats")]
 pub async fn get_group_stats(
     data: Data<AppState>,
-    info: web::Query<GroupIdData>,
+    info: web::Query<GetStatsData>,
 ) -> impl Responder {
+    let games = get_last_n_games(&data.pg_pool, info.id, info.n).await;
+    println!("{games:?}");
+
     // Get number of games, player name, and total score
     let players = sqlx::query!(
         "SELECT
@@ -72,11 +100,9 @@ pub async fn get_group_stats(
         FROM game_score
         INNER JOIN player
             ON game_score.player_id = player.id
-        INNER JOIN game
-            ON game_score.game_id = game.id
-        WHERE game.group_id = $1
+        WHERE game_score.game_id = ANY($1)
         GROUP BY player_id, player.name;",
-        info.id
+        &games
     )
     .fetch_all(data.pg_pool.as_ref())
     .await

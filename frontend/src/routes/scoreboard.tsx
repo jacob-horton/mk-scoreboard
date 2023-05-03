@@ -31,7 +31,7 @@ const Scoreboard = () => {
   const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
   useEffect(() => {
     async function getStats() {
-      const stats = await getPlayerStats(id);
+      const stats = await getPlayerStats(id, 10);
 
       // Sort by points per game
       stats.sort((a, b) => (a.points / a.games < b.points / b.games ? 1 : -1));
