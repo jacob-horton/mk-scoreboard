@@ -5,8 +5,8 @@ use actix_web::{
     web::{self, Data, Query},
     HttpResponse, Responder,
 };
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use sqlx::{Pool, Postgres};
 
 use crate::{
     routes::players::{Player, PlayerStats},
@@ -64,86 +64,71 @@ pub struct GetStatsData {
     n: Option<i32>, // Number of games
 }
 
-async fn get_last_n_games(pool: &Pool<Postgres>, group_id: i32, n: Option<i32>) -> Vec<i32> {
-    sqlx::query!(
-        "SELECT id
-        FROM game
-        WHERE group_id = $1
-        ORDER BY date DESC
-        LIMIT $2",
-        group_id,
-        n.map(|x| x as i64)
-    )
-    .fetch_all(pool)
-    .await
-    .unwrap()
-    .iter()
-    .map(|x| x.id)
-    .collect()
-}
-
 #[get("/groups/stats")]
 pub async fn get_group_stats(
     data: Data<AppState>,
     info: web::Query<GetStatsData>,
 ) -> impl Responder {
-    let games = get_last_n_games(&data.pg_pool, info.id, info.n).await;
-    println!("{games:?}");
-
-    // Get number of games, player name, and total score
-    let players = sqlx::query!(
+    // Players in group
+    let player_games = sqlx::query!(
         "SELECT
-            player_id,
-            player.name as name,
-            SUM(score) as tot_score,
-            COUNT(*) as count
-        FROM game_score
-        INNER JOIN player
-            ON game_score.player_id = player.id
-        WHERE game_score.game_id = ANY($1)
-        GROUP BY player_id, player.name;",
-        &games
-    )
-    .fetch_all(data.pg_pool.as_ref())
-    .await
-    .unwrap();
-
-    // Get (player_id, wins)
-    // Counts draws as wins
-    let wins = sqlx::query!(
-        "SELECT player_id, COUNT(player_id) as count
-        FROM game_score
-        WHERE (game_id, score) IN (
-            SELECT game_id, MAX(score) as score
-            FROM game_score
-            INNER JOIN game
-                ON game_score.game_id = game.id
-            WHERE game.group_id = $1
-            GROUP BY game_id
-        ) GROUP BY player_id",
+            game_score.player_id as player_id,
+            game_score.game_id as game_id, 
+            player.name as player_name,
+            game_score.score as points
+        FROM player_group
+        INNER JOIN player ON player.id = player_group.player_id
+        INNER JOIN game_score ON game_score.player_id = player_group.player_id
+        INNER JOIN game ON game_score.game_id = game.id
+        WHERE player_group.group_id = $1
+        ORDER BY date DESC
+        ",
         info.id
     )
     .fetch_all(data.pg_pool.as_ref())
     .await
     .unwrap();
 
-    let mut wins_map = HashMap::new();
-    for win in wins {
-        wins_map.insert(win.player_id, win.count.unwrap());
+    // Highest score for each game
+    let games = sqlx::query!(
+        "SELECT game.id, MAX(game_score.score) as max_score
+        FROM game
+        INNER JOIN game_score ON game.id = game_score.game_id
+        GROUP BY game.id"
+    )
+    .fetch_all(data.pg_pool.as_ref())
+    .await
+    .unwrap();
+
+    let games: HashMap<_, _> = games.iter().map(|g| (g.id, g.max_score.unwrap())).collect();
+
+    // Player ID to stats
+    let mut players: HashMap<i32, PlayerStats> = HashMap::new();
+    for player_game in player_games {
+        let mut player = players.entry(player_game.player_id).or_insert(PlayerStats {
+            id: player_game.player_id,
+            name: player_game.player_name,
+            points: 0,
+            wins: 0,
+            games: 0,
+        });
+
+        // Skip if already got the n games
+        if let Some(n) = info.n {
+            if player.games >= n {
+                continue;
+            }
+        }
+
+        if games.get(&player_game.game_id).unwrap() == &player_game.points {
+            player.wins += 1;
+        }
+
+        player.games += 1;
+        player.points += player_game.points;
     }
 
-    let players: Vec<_> = players
-        .into_iter()
-        .map(|player| PlayerStats {
-            id: player.player_id,
-            name: player.name,
-            points: player.tot_score.unwrap() as i32,
-            games: player.count.unwrap() as i32,
-            wins: wins_map.get(&player.player_id).unwrap_or(&0).to_owned() as i32,
-        })
-        .collect();
-
-    HttpResponse::Ok().json(players)
+    HttpResponse::Ok().json(players.values().collect_vec())
 }
 
 #[get("/groups/list_players")]
