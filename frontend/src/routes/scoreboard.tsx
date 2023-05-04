@@ -49,7 +49,7 @@ const Scoreboard = () => {
     <div className="px-4 pt-4 grow flex-col flex h-screen">
       <div className="flex flex-row justify-between pb-10 items-center">
         <h1 className="text-4xl font-light">{name}</h1>
-        <div className="flex flex-col items-end">
+        <div className="flex flex-col items-end pr-2">
           <p className="text-gray-800">Number of Games</p>
           <select
             name="Number of Games"
