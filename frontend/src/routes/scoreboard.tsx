@@ -28,10 +28,14 @@ export interface Player {
 const Scoreboard = () => {
   const { id, name } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
 
+  const [numberGames, setNumberGames] = useState<number | "All">(10);
+  const numberGamesOptions: (number | "All")[] = [10, "All"];
+
   const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
   useEffect(() => {
     async function getStats() {
-      const stats = await getPlayerStats(id, 10);
+      const number = numberGames === "All" ? null : numberGames;
+      const stats = await getPlayerStats(id, number);
 
       // Sort by points per game
       stats.sort((a, b) => (a.points / a.games < b.points / b.games ? 1 : -1));
@@ -39,11 +43,38 @@ const Scoreboard = () => {
     }
 
     getStats();
-  }, [id]);
+  }, [id, numberGames]);
 
   return (
     <div className="px-4 pt-4 grow flex-col flex h-screen">
-      <h1 className="text-4xl font-light pr-4 pb-10">{name}</h1>
+      <div className="flex flex-row justify-between pb-10 items-center">
+        <h1 className="text-4xl font-light">{name}</h1>
+        <div className="flex flex-col items-end">
+          <p className="text-gray-800">Number of Games</p>
+          <select
+            name="Number of Games"
+            value={numberGames}
+            className="w-24 p-2 rounded-lg h-10"
+            onChange={(e) => {
+              const val = e.target.value;
+              const asNumber = Number(val);
+              if (!isNaN(asNumber)) {
+                setNumberGames(asNumber);
+              } else if (val === "All") {
+                setNumberGames(val);
+              }
+            }}
+          >
+            {numberGamesOptions.map((val) => {
+              return (
+                <option key={val} value={val}>
+                  {val}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+      </div>
       <div className="text-gray-400 flex md:px-6 px-4">
         <p className="w-12 hidden sm:block">No.</p>
         <p className="grow pr-4">Name</p>
