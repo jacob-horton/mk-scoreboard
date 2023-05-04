@@ -59,9 +59,11 @@ pub async fn get_group(data: Data<AppState>, info: web::Query<GroupIdData>) -> i
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct GetStatsData {
     id: i32,
     n: Option<i32>, // Number of games
+    skip_most_recent: bool,
 }
 
 #[get("/groups/stats")]
@@ -100,9 +102,28 @@ pub async fn get_group_stats(
 
     let games: HashMap<_, _> = games.iter().map(|g| (g.id, g.max_score.unwrap())).collect();
 
+    let most_recent_id = match info.skip_most_recent {
+        true => sqlx::query!("SELECT game.id FROM game ORDER BY date DESC LIMIT 1")
+            .fetch_one(data.pg_pool.as_ref())
+            .await
+            .ok()
+            .map(|x| x.id),
+        false => None,
+    };
+
     // Player ID to stats
     let mut players: HashMap<i32, PlayerStats> = HashMap::new();
     for player_game in player_games {
+        if let Some(id) = most_recent_id {
+            if player_game.game_id == id {
+                println!(
+                    "skipping {id}: {} {}",
+                    player_game.player_name, player_game.points
+                );
+                continue;
+            }
+        }
+
         let mut player = players.entry(player_game.player_id).or_insert(PlayerStats {
             id: player_game.player_id,
             name: player_game.player_name,

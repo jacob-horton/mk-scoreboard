@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import PlayerCard from "../components/PlayerCard";
-import { PlayerStats, getPlayerStats } from "../data/playerStats";
+import {
+  PlayerStats,
+  PlayerStatsWithComparison,
+  getPlayerStats,
+} from "../data/playerStats";
 import { Link, useLoaderData } from "react-router-dom";
 import getIP from "../data/ip";
 import { Group } from "../data/types";
@@ -29,17 +33,38 @@ const Scoreboard = () => {
   const { id, name } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
 
   const [numberGames, setNumberGames] = useState<number | "All">(10);
-  const numberGamesOptions: (number | "All")[] = [10, "All"];
+  const numberGamesOptions: (number | "All")[] = [10, 50, "All"];
 
-  const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
+  const [playerStats, setPlayerStats] = useState<PlayerStatsWithComparison[]>(
+    []
+  );
   useEffect(() => {
     async function getStats() {
       const number = numberGames === "All" ? null : numberGames;
-      const stats = await getPlayerStats(id, number);
+      const stats = await getPlayerStats(id, number, false);
+      const prevStats = await getPlayerStats(id, number, true);
 
       // Sort by points per game
       stats.sort((a, b) => (a.points / a.games < b.points / b.games ? 1 : -1));
-      setPlayerStats(stats);
+      prevStats.sort((a, b) =>
+        a.points / a.games < b.points / b.games ? 1 : -1
+      );
+
+      const comparisonStats = stats.map((s, place) => {
+        const prev = prevStats.find((p) => p.id === s.id);
+        if (prev === undefined) {
+          return { stats: s, pointChange: 0, placeChange: 0 };
+        }
+
+        const prevPlace = prevStats.indexOf(prev);
+        return {
+          stats: s,
+          pointChange: s.points - prev.points,
+          placeChange: place - prevPlace,
+        };
+      });
+
+      setPlayerStats(comparisonStats);
     }
 
     getStats();
@@ -76,19 +101,19 @@ const Scoreboard = () => {
         </div>
       </div>
       <div className="text-gray-400 flex md:px-6 px-4">
-        <p className="w-12 hidden sm:block">No.</p>
+        <p className="w-14">No.</p>
         <p className="grow pr-4">Name</p>
         <p className="w-20 hidden sm:block">Wins</p>
         <p className="w-36 hidden sm:block">Win Percentage</p>
         <p className="w-20 block sm:hidden">Win %</p>
         <p className="w-20 hidden sm:block">Points</p>
-        <p className="w-36 hidden sm:block">Points Per Game</p>
-        <p className="w-28 sm:w-36 block sm:hidden">Points/Game</p>
+        <p className="w-32 hidden sm:block">Points Per Game</p>
+        <p className="w-28 block sm:hidden">Points/Game</p>
       </div>
 
       <div className="overflow-scroll px-2 pt-1 pb-6">
         {playerStats.map((p, i) => (
-          <PlayerCard stats={p} idx={i} key={p.id} />
+          <PlayerCard stats={p} idx={i} key={p.stats.id} />
         ))}
       </div>
       <div className="fixed bottom-0 right-0 pr-4 pb-4 space-x-4">
