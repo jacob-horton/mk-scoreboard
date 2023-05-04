@@ -116,10 +116,6 @@ pub async fn get_group_stats(
     for player_game in player_games {
         if let Some(id) = most_recent_id {
             if player_game.game_id == id {
-                println!(
-                    "skipping {id}: {} {}",
-                    player_game.player_name, player_game.points
-                );
                 continue;
             }
         }
