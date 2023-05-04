@@ -107,11 +107,13 @@ const AddGame = () => {
             return;
           }
 
-          // TODO: make adjustable
-          const maxScore = 6 * 15;
-          if (playerScores.some((p) => p.score > maxScore)) {
-            alert(`Max possible score is ${maxScore}`);
-            return;
+          if (group.maxScore !== null) {
+            if (
+              playerScores.some((p) => p.score > (group.maxScore as number))
+            ) {
+              alert(`Max possible score is ${group.maxScore}`);
+              return;
+            }
           }
 
           // Hehe
