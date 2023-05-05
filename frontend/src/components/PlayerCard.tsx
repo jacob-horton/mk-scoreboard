@@ -13,7 +13,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   stats: {
     stats: { name, wins, points, games },
     placeChange,
-    pointChange,
+    pointsPerGameChange: pointChange,
   },
   idx,
 }) => {

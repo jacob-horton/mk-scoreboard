@@ -67,15 +67,19 @@ const Scoreboard = () => {
       const comparisonStats = stats.map((s, place) => {
         const prev = prevStats.find((p) => p.id === s.id);
         if (prev === undefined) {
-          return { stats: s, pointChange: 0, placeChange: 0 };
+          return {
+            stats: s,
+            pointsPerGameChange: 0,
+            placeChange: 0,
+          } as PlayerStatsWithComparison;
         }
 
         const prevPlace = prevStats.indexOf(prev);
         return {
           stats: s,
-          pointChange: s.points - prev.points,
+          pointsPerGameChange: s.points / s.games - prev.points / prev.games,
           placeChange: place - prevPlace,
-        };
+        } as PlayerStatsWithComparison;
       });
 
       setPlayerStats(comparisonStats);
