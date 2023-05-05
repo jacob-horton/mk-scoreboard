@@ -127,6 +127,12 @@ const Scoreboard = () => {
           Name
         </button>
         <button
+          className="w-20 hidden xl:block text-left"
+          onClick={() => setSortProp("games")}
+        >
+          Games
+        </button>
+        <button
           className="w-20 hidden sm:block text-left"
           onClick={() => setSortProp("wins")}
         >

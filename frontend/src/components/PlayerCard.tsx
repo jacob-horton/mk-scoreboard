@@ -11,7 +11,7 @@ interface PlayerCardProps {
 
 const PlayerCard: React.FC<PlayerCardProps> = ({
   stats: {
-    stats: { name, wins, points, games },
+    stats: { name, wins, points, games, pointsPerGame, winPercentage },
     placeChange,
     pointsPerGameChange: pointChange,
   },
@@ -36,11 +36,14 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       <p className="grow text-md sm:text-lg md:text-2xl font-light pr-4">
         {name}
       </p>
+      <p className="w-20 text-lg md:text-2xl font-light hidden xl:block">
+        {games}
+      </p>
       <p className="w-20 text-lg md:text-2xl font-light hidden sm:block">
         {wins}
       </p>
       <p className="w-20 sm:w-36 text-md sm:text-lg md:text-2xl font-light">
-        {((wins / games) * 100).toFixed(2)}%
+        {(winPercentage * 100).toFixed(2)}%
       </p>
       <p className="w-20 text-lg md:text-2xl font-light hidden sm:block">
         {points}
@@ -58,7 +61,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
           </IconContext.Provider>
         </p>
         <p className="text-md sm:text-lg md:text-2xl font-light">
-          {(points / games).toFixed(2)}
+          {pointsPerGame.toFixed(2)}
         </p>
       </div>
     </div>
