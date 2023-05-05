@@ -116,42 +116,48 @@ const Scoreboard = () => {
       </div>
       <div className="text-gray-400 flex md:px-6 px-4">
         <p className="w-14">No.</p>
-        <p className="grow pr-4" onClick={() => setSortProp("name")}>
+        <button
+          className="grow pr-4 text-left"
+          onClick={() => setSortProp("name")}
+        >
           Name
-        </p>
-        <p className="w-20 hidden sm:block" onClick={() => setSortProp("wins")}>
+        </button>
+        <button
+          className="w-20 hidden sm:block text-left"
+          onClick={() => setSortProp("wins")}
+        >
           Wins
-        </p>
-        <p
-          className="w-36 hidden sm:block"
+        </button>
+        <button
+          className="w-36 hidden sm:block text-left"
           onClick={() => setSortProp("winPercentage")}
         >
           Win Percentage
-        </p>
-        <p
-          className="w-20 block sm:hidden"
+        </button>
+        <button
+          className="w-20 block sm:hidden text-left"
           onClick={() => setSortProp("winPercentage")}
         >
           Win %
-        </p>
-        <p
-          className="w-20 hidden sm:block"
+        </button>
+        <button
+          className="w-20 hidden sm:block text-left"
           onClick={() => setSortProp("points")}
         >
           Points
-        </p>
-        <p
-          className="w-32 hidden sm:block"
+        </button>
+        <button
+          className="w-32 hidden sm:block text-left"
           onClick={() => setSortProp("pointsPerGame")}
         >
           Points Per Game
-        </p>
-        <p
-          className="w-28 block sm:hidden"
+        </button>
+        <button
+          className="w-28 block sm:hidden text-left"
           onClick={() => setSortProp("pointsPerGame")}
         >
           Points/Game
-        </p>
+        </button>
       </div>
 
       <div className="overflow-scroll px-2 pt-1 pb-6">
