@@ -24,9 +24,9 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
           {idx + 1}
         </p>
         <IconContext.Provider value={{ size: "20px", className: "ml-2" }}>
-          {placeChange > 0 ? (
+          {placeChange < 0 ? (
             <RiArrowUpSLine className="text-green-500" />
-          ) : placeChange < 0 ? (
+          ) : placeChange > 0 ? (
             <RiArrowDownSLine className="text-red-500" />
           ) : (
             <BsDash className="text-gray-400" />

@@ -49,8 +49,20 @@ const Scoreboard = () => {
       const prevStats = await getPlayerStats(id, number, true);
 
       // Sort by points per game
-      stats.sort((a, b) => (a[sortProp] < b[sortProp] ? 1 : -1));
-      prevStats.sort((a, b) => (a[sortProp] < b[sortProp] ? 1 : -1));
+      stats.sort((a, b) =>
+        a[sortProp] < b[sortProp]
+          ? 1
+          : a[sortProp] > b[sortProp]
+            ? -1
+            : a.id - b.id
+      );
+      prevStats.sort((a, b) =>
+        a[sortProp] < b[sortProp]
+          ? 1
+          : a[sortProp] > b[sortProp]
+            ? -1
+            : a.id - b.id
+      );
 
       const comparisonStats = stats.map((s, place) => {
         const prev = prevStats.find((p) => p.id === s.id);
