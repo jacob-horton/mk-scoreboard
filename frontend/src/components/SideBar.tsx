@@ -73,7 +73,7 @@ const SideBar: React.FC<SideBarProps> = ({
           ))}
           <li key={"Old Scores"}>
             <SideBarButton
-              page={`/old-scores`}
+              page={`groups/old-scores`}
               name="Old Scores"
               onClick={onClose}
             />

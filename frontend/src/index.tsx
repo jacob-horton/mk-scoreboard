@@ -6,6 +6,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Scoreboard, { loader as groupLoader } from "./routes/scoreboard.tsx";
 import AddGame, { loader as addGameLoader } from "./routes/addGame.tsx";
 import SimpleScoreboard from "./routes/simpleScoreboard.tsx";
+import Graph, { loader as graphLoader } from "./routes/graph.tsx";
 
 const router = createBrowserRouter([
   {
@@ -38,8 +39,13 @@ const router = createBrowserRouter([
         loader: addGameLoader,
       },
       {
-        path: "old-scores",
+        path: "groups/old-scores",
         element: <SimpleScoreboard />,
+      },
+      {
+        path: "groups/:groupId/graphs/:playerId",
+        element: <Graph />,
+        loader: graphLoader,
       },
     ],
   },

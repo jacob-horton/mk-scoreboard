@@ -18,7 +18,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   idx,
 }) => {
   return (
-    <div className="bg-white text-gray-800 flex p-2 md:px-4 md:py-6 mb-1 md:mb-3 rounded-lg border items-center md:drop-shadow">
+    <div className="bg-white text-gray-800 flex p-2 md:px-4 md:py-6 rounded-lg border items-center md:drop-shadow">
       <div className="w-14 pr-4 flex flex-row items-center">
         <p className="text-gray-400 text-md sm:text-lg md:text-2xl font-light">
           {idx + 1}

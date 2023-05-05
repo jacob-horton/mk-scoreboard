@@ -4,6 +4,7 @@ use actix_cors::Cors;
 use actix_web::{http, web::Data, App, HttpServer};
 use routes::games::{add_game, get_previous_players};
 use routes::groups::{get_group, get_group_stats, list_groups, list_players};
+use routes::players::{player_history, player_name};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 mod routes;
@@ -45,6 +46,8 @@ async fn main() -> std::io::Result<()> {
             .service(get_group_stats)
             .service(list_groups)
             .service(get_group)
+            .service(player_history)
+            .service(player_name)
     })
     .bind(("0.0.0.0", 8080))?
     .run()

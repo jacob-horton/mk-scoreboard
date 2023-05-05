@@ -170,9 +170,13 @@ const Scoreboard = () => {
         </button>
       </div>
 
-      <div className="overflow-scroll px-2 pt-1 pb-6">
+      <div className="overflow-scroll px-2 pt-1 pb-6 space-y-1 md:space-y-3">
         {playerStats.map((p, i) => (
-          <PlayerCard stats={p} idx={i} key={p.stats.id} />
+          <div className="w-full">
+            <Link to={`/groups/${id}/graphs/${p.stats.id}`}>
+              <PlayerCard stats={p} idx={i} key={p.stats.id} />
+            </Link>
+          </div>
         ))}
       </div>
       <div className="fixed bottom-0 right-0 pr-4 pb-4 space-x-4">
