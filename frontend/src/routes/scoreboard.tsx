@@ -97,7 +97,7 @@ const Scoreboard = () => {
           <select
             name="Number of Games"
             value={numberGames}
-            className="w-24 px-2 py-1 rounded-lg"
+            className="w-24 px-2 py-2 rounded-lg"
             onChange={(e) => {
               const val = e.target.value;
               const asNumber = Number(val);
