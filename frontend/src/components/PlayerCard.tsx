@@ -17,20 +17,6 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   },
   idx,
 }) => {
-  let pointChangeIcon = "-";
-  if (pointChange < 0) {
-    pointChangeIcon = "v";
-  } else if (pointChange > 0) {
-    pointChangeIcon = "^";
-  }
-
-  let placeChangeIcon = "-";
-  if (placeChange < 0) {
-    placeChangeIcon = "^";
-  } else if (placeChange > 0) {
-    placeChangeIcon = "v";
-  }
-
   return (
     <div className="bg-white text-gray-800 flex p-2 md:px-4 md:py-6 mb-1 md:mb-3 rounded-lg border items-center md:drop-shadow">
       <div className="w-14 pr-4 flex flex-row items-center">
@@ -38,9 +24,9 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
           {idx + 1}
         </p>
         <IconContext.Provider value={{ size: "20px", className: "ml-2" }}>
-          {pointChange > 0 ? (
+          {placeChange > 0 ? (
             <RiArrowUpSLine className="text-green-500" />
-          ) : pointChange < 0 ? (
+          ) : placeChange < 0 ? (
             <RiArrowDownSLine className="text-red-500" />
           ) : (
             <BsDash className="text-gray-400" />

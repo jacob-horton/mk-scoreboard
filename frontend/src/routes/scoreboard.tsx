@@ -29,11 +29,15 @@ export interface Player {
   name: string;
 }
 
+type SortFunction = (p1: PlayerStats, p2: PlayerStats) => number;
+
 const Scoreboard = () => {
   const { id, name } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
 
   const [numberGames, setNumberGames] = useState<number | "All">(10);
   const numberGamesOptions: (number | "All")[] = [10, 50, "All"];
+
+  const [sortProp, setSortProp] = useState<string>("pointsPerGame");
 
   const [playerStats, setPlayerStats] = useState<PlayerStatsWithComparison[]>(
     []
@@ -45,10 +49,8 @@ const Scoreboard = () => {
       const prevStats = await getPlayerStats(id, number, true);
 
       // Sort by points per game
-      stats.sort((a, b) => (a.points / a.games < b.points / b.games ? 1 : -1));
-      prevStats.sort((a, b) =>
-        a.points / a.games < b.points / b.games ? 1 : -1
-      );
+      stats.sort((a, b) => (a[sortProp] < b[sortProp] ? 1 : -1));
+      prevStats.sort((a, b) => (a[sortProp] < b[sortProp] ? 1 : -1));
 
       const comparisonStats = stats.map((s, place) => {
         const prev = prevStats.find((p) => p.id === s.id);
@@ -68,7 +70,7 @@ const Scoreboard = () => {
     }
 
     getStats();
-  }, [id, numberGames]);
+  }, [id, numberGames, sortProp]);
 
   return (
     <div className="px-4 pt-4 grow flex-col flex h-screen">
@@ -102,13 +104,42 @@ const Scoreboard = () => {
       </div>
       <div className="text-gray-400 flex md:px-6 px-4">
         <p className="w-14">No.</p>
-        <p className="grow pr-4">Name</p>
-        <p className="w-20 hidden sm:block">Wins</p>
-        <p className="w-36 hidden sm:block">Win Percentage</p>
-        <p className="w-20 block sm:hidden">Win %</p>
-        <p className="w-20 hidden sm:block">Points</p>
-        <p className="w-32 hidden sm:block">Points Per Game</p>
-        <p className="w-28 block sm:hidden">Points/Game</p>
+        <p className="grow pr-4" onClick={() => setSortProp("name")}>
+          Name
+        </p>
+        <p className="w-20 hidden sm:block" onClick={() => setSortProp("wins")}>
+          Wins
+        </p>
+        <p
+          className="w-36 hidden sm:block"
+          onClick={() => setSortProp("winPercentage")}
+        >
+          Win Percentage
+        </p>
+        <p
+          className="w-20 block sm:hidden"
+          onClick={() => setSortProp("winPercentage")}
+        >
+          Win %
+        </p>
+        <p
+          className="w-20 hidden sm:block"
+          onClick={() => setSortProp("points")}
+        >
+          Points
+        </p>
+        <p
+          className="w-32 hidden sm:block"
+          onClick={() => setSortProp("pointsPerGame")}
+        >
+          Points Per Game
+        </p>
+        <p
+          className="w-28 block sm:hidden"
+          onClick={() => setSortProp("pointsPerGame")}
+        >
+          Points/Game
+        </p>
       </div>
 
       <div className="overflow-scroll px-2 pt-1 pb-6">

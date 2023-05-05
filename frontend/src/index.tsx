@@ -7,7 +7,6 @@ import Scoreboard, { loader as groupLoader } from "./routes/scoreboard.tsx";
 import AddGame, { loader as addGameLoader } from "./routes/addGame.tsx";
 import SimpleScoreboard from "./routes/simpleScoreboard.tsx";
 
-// TODO: use group ID
 const router = createBrowserRouter([
   {
     path: "/*",
