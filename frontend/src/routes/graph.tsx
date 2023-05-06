@@ -12,6 +12,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import getIP from "../data/ip";
+import Page from "../components/Page";
 
 ChartJS.register(
   CategoryScale,
@@ -69,14 +70,10 @@ const Graph = () => {
       legend: {
         position: "top" as const,
       },
-      title: {
-        display: true,
-        text: "Points",
-      },
     },
   };
 
-  const labels = [...Array(points.length).keys()];
+  const labels = [...Array(points.length).keys()].map((x) => x + 1);
   const avg = points.reduce((a, b) => a + b, 0) / points.length;
   const avgLine = new Array(points.length).fill(avg);
 
@@ -100,9 +97,9 @@ const Graph = () => {
   };
 
   return (
-    <div>
+    <Page titleBar={<h1 className="text-4xl font-light">Points for {name}</h1>}>
       <Line options={options} data={data} />
-    </div>
+    </Page>
   );
 };
 

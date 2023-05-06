@@ -8,6 +8,7 @@ import {
 import { Link, useLoaderData } from "react-router-dom";
 import getIP from "../data/ip";
 import { Group } from "../data/types";
+import Page from "../components/Page";
 
 export async function loader({ params }: { params: { groupId: string } }) {
   const ip = getIP();
@@ -28,8 +29,6 @@ export interface Player {
   id: number;
   name: string;
 }
-
-type SortFunction = (p1: PlayerStats, p2: PlayerStats) => number;
 
 const Scoreboard = () => {
   const { id, name } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
@@ -89,35 +88,38 @@ const Scoreboard = () => {
   }, [id, numberGames, sortProp]);
 
   return (
-    <div className="px-4 pt-4 grow flex-col flex h-screen">
-      <div className="flex flex-row justify-between pb-10 items-center">
-        <h1 className="text-4xl font-light">{name}</h1>
-        <div className="flex flex-col items-end pr-2">
-          <p className="text-gray-800">Number of Games</p>
-          <select
-            name="Number of Games"
-            value={numberGames}
-            className="w-24 px-2 py-2 rounded-lg"
-            onChange={(e) => {
-              const val = e.target.value;
-              const asNumber = Number(val);
-              if (!isNaN(asNumber)) {
-                setNumberGames(asNumber);
-              } else if (val === "All") {
-                setNumberGames(val);
-              }
-            }}
-          >
-            {numberGamesOptions.map((val) => {
-              return (
-                <option key={val} value={val}>
-                  {val}
-                </option>
-              );
-            })}
-          </select>
+    <Page
+      titleBar={
+        <div className="flex justify-between w-full items-center">
+          <h1 className="text-4xl font-light">{name}</h1>
+          <div className="flex flex-col items-end pr-2">
+            <p className="text-gray-800">Number of Games</p>
+            <select
+              name="Number of Games"
+              value={numberGames}
+              className="w-24 px-2 py-2 rounded-lg"
+              onChange={(e) => {
+                const val = e.target.value;
+                const asNumber = Number(val);
+                if (!isNaN(asNumber)) {
+                  setNumberGames(asNumber);
+                } else if (val === "All") {
+                  setNumberGames(val);
+                }
+              }}
+            >
+              {numberGamesOptions.map((val) => {
+                return (
+                  <option key={val} value={val}>
+                    {val}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
         </div>
-      </div>
+      }
+    >
       <div className="text-gray-400 flex md:px-6 px-4">
         <p className="w-14">No.</p>
         <button
@@ -172,7 +174,7 @@ const Scoreboard = () => {
 
       <div className="overflow-scroll px-2 pt-1 pb-6 space-y-1 md:space-y-3">
         {playerStats.map((p, i) => (
-          <div className="w-full">
+          <div className="w-full" key={p.stats.id}>
             <Link to={`/groups/${id}/graphs/${p.stats.id}`}>
               <PlayerCard stats={p} idx={i} key={p.stats.id} />
             </Link>
@@ -187,7 +189,7 @@ const Scoreboard = () => {
           + New Game
         </Link>
       </div>
-    </div>
+    </Page>
   );
 };
 

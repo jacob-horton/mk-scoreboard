@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App, { loader as appLoader } from "./App.tsx";
 import "./index.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
 import Scoreboard, { loader as groupLoader } from "./routes/scoreboard.tsx";
 import AddGame, { loader as addGameLoader } from "./routes/addGame.tsx";
 import SimpleScoreboard from "./routes/simpleScoreboard.tsx";
@@ -11,7 +11,7 @@ import Graph, { loader as graphLoader } from "./routes/graph.tsx";
 const router = createBrowserRouter([
   {
     path: "/*",
-    element: <App />,
+    element: <Outlet />,
     loader: appLoader,
     errorElement: <p>404 Page Not Found</p>,
     children: [

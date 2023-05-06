@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { SimplePlayerStats, getSimplePlayerStats } from "../data/playerStats";
 import SimplePlayerCard from "../components/SimplePlayerCard";
+import Page from "../components/Page";
 
 const SimpleScoreboard = () => {
   const [playerStats, setPlayerStats] = useState<SimplePlayerStats[]>([]);
@@ -17,8 +18,7 @@ const SimpleScoreboard = () => {
   }, []);
 
   return (
-    <div className="px-4 pt-4 grow flex-col flex h-screen">
-      <h1 className="text-4xl font-light pr-4 pb-10">Old Scores</h1>
+    <Page titleBar={<h1 className="text-4xl font-light">Old Scores</h1>}>
       <div className="text-gray-400 flex md:px-6 px-4">
         <p className="w-12 hidden sm:block">No.</p>
         <p className="grow pr-4">Name</p>
@@ -33,7 +33,7 @@ const SimpleScoreboard = () => {
           <SimplePlayerCard stats={p} idx={i} key={p.name} />
         ))}
       </div>
-    </div>
+    </Page>
   );
 };
 

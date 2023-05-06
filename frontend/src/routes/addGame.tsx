@@ -3,6 +3,7 @@ import Dropdown from "../components/Dropdown";
 import { Form, useLoaderData, useNavigate } from "react-router-dom";
 import { Group, Player } from "../data/types";
 import getIP from "../data/ip";
+import Page from "../components/Page";
 
 export async function loader({ params }: { params: { groupId: string } }) {
   const ip = getIP();
@@ -86,116 +87,124 @@ const AddGame = () => {
   ]);
 
   return (
-    <div className="space-y-4 p-4">
-      <Form
-        onSubmit={async (e) => {
-          e.preventDefault();
+    <Page
+      titleBar={
+        <h1 className="text-4xl font-light">Add Game to {group.name}</h1>
+      }
+    >
+      <div className="space-y-4 p-4">
+        <Form
+          onSubmit={async (e) => {
+            e.preventDefault();
 
-          if (playerScores.some((p) => p.playerId === null || p.score === 0)) {
-            alert(
-              "Please fill in all players and scores and ensure they are valid"
-            );
-            return;
-          }
-
-          // Check if any duplicate ids
-          if (
-            new Set(playerScores.map((p) => p.playerId)).size <
-            playerScores.length
-          ) {
-            alert("Duplicate players are not allowed");
-            return;
-          }
-
-          if (group.maxScore !== null) {
             if (
-              playerScores.some((p) => p.score > (group.maxScore as number))
+              playerScores.some((p) => p.playerId === null || p.score === 0)
             ) {
-              alert(`Max possible score is ${group.maxScore}`);
+              alert(
+                "Please fill in all players and scores and ensure they are valid"
+              );
               return;
             }
-          }
 
-          // Hehe
-          if (questionWinner(playerScores, [6, 7])) {
-            alert(
-              "Are you sure you haven't made a mistake on that one? (hehe)"
+            // Check if any duplicate ids
+            if (
+              new Set(playerScores.map((p) => p.playerId)).size <
+              playerScores.length
+            ) {
+              alert("Duplicate players are not allowed");
+              return;
+            }
+
+            if (group.maxScore !== null) {
+              if (
+                playerScores.some((p) => p.score > (group.maxScore as number))
+              ) {
+                alert(`Max possible score is ${group.maxScore}`);
+                return;
+              }
+            }
+
+            // Hehe
+            if (questionWinner(playerScores, [6, 7])) {
+              alert(
+                "Are you sure you haven't made a mistake on that one? (hehe)"
+              );
+            }
+
+            const ip = getIP();
+            await fetch(`http://${ip}:8080/game/add`, {
+              method: "POST",
+              body: JSON.stringify({ scores: playerScores, groupId: group.id }),
+              headers: { "Content-Type": "application/json" },
+            });
+
+            navigate(`/groups/${group.id}/scoreboard`);
+          }}
+        >
+          {Array.from(Array(4).keys()).map((i) => {
+            return (
+              <Dropdown
+                key={i}
+                disabled={playerScores
+                  .map(({ playerId }) => playerId)
+                  .filter((id): id is number => id !== null)}
+                options={players}
+                label={`Player ${i + 1}`}
+                value={playerScores[i].playerId ?? undefined}
+                onPlayerChange={(playerId) => {
+                  setPlayerScores((prev) => {
+                    let curr = [...prev];
+                    curr[i] = { ...curr[i], playerId };
+                    return curr;
+                  });
+                }}
+                onScoreChange={(score) => {
+                  setPlayerScores((prev) => {
+                    let curr = [...prev];
+                    curr[i] = { ...curr[i], score };
+                    return curr;
+                  });
+                }}
+              />
             );
-          }
+          })}
 
-          const ip = getIP();
-          await fetch(`http://${ip}:8080/game/add`, {
-            method: "POST",
-            body: JSON.stringify({ scores: playerScores, groupId: group.id }),
-            headers: { "Content-Type": "application/json" },
-          });
+          <div className="pt-4 space-x-4">
+            <button
+              className="px-4 py-2 rounded-lg transition bg-blue-500 text-white hover:bg-blue-400"
+              type="submit"
+            >
+              Submit
+            </button>
+            <button
+              className="px-4 py-2 rounded-lg transition bg-gray-200 text-gray-800 hover:bg-gray-300"
+              onClick={async () => {
+                const ip = getIP();
+                const url = new URL(`http://${ip}:8080/game/previous_players`);
+                url.searchParams.append("groupId", group.id.toString());
 
-          navigate(`/groups/${group.id}/scoreboard`);
-        }}
-      >
-        {Array.from(Array(4).keys()).map((i) => {
-          return (
-            <Dropdown
-              key={i}
-              disabled={playerScores
-                .map(({ playerId }) => playerId)
-                .filter((id): id is number => id !== null)}
-              options={players}
-              label={`Player ${i + 1}`}
-              value={playerScores[i].playerId ?? undefined}
-              onPlayerChange={(playerId) => {
-                setPlayerScores((prev) => {
-                  let curr = [...prev];
-                  curr[i] = { ...curr[i], playerId };
-                  return curr;
+                await fetch(url).then(async (response) => {
+                  if (!response.ok) {
+                    throw new Error(response.statusText);
+                  }
+
+                  const players = await response
+                    .json()
+                    .then((data) => data as number[]);
+
+                  setPlayerScores((prev) => {
+                    return prev.map((p, i) => ({ ...p, playerId: players[i] }));
+                  });
                 });
               }}
-              onScoreChange={(score) => {
-                setPlayerScores((prev) => {
-                  let curr = [...prev];
-                  curr[i] = { ...curr[i], score };
-                  return curr;
-                });
-              }}
-            />
-          );
-        })}
-
-        <div className="pt-4 space-x-4">
-          <button
-            className="px-4 py-2 rounded-lg transition bg-blue-500 text-white hover:bg-blue-400"
-            type="submit"
-          >
-            Submit
-          </button>
-          <button
-            className="px-4 py-2 rounded-lg transition bg-gray-200 text-gray-800 hover:bg-gray-300"
-            onClick={async () => {
-              const ip = getIP();
-              const url = new URL(`http://${ip}:8080/game/previous_players`);
-              url.searchParams.append("groupId", group.id.toString());
-
-              await fetch(url).then(async (response) => {
-                if (!response.ok) {
-                  throw new Error(response.statusText);
-                }
-
-                const players = await response
-                  .json()
-                  .then((data) => data as number[]);
-
-                setPlayerScores((prev) => {
-                  return prev.map((p, i) => ({ ...p, playerId: players[i] }));
-                });
-              });
-            }}
-            type="button"
-          >
-            Use previous players
-          </button>
-        </div>
-      </Form>
-    </div>
+              type="button"
+            >
+              Use previous players
+            </button>
+          </div>
+        </Form>
+      </div>
+    </Page>
   );
 };
 
