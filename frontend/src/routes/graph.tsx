@@ -29,13 +29,6 @@ export async function loader({
   params: { groupId: string; playerId: string };
 }) {
   const { groupId, playerId } = params;
-  // return {
-  //   name: "bob",
-  //   points: [
-  //     43, 53, 56, 57, 56, 61, 61, 59, 56, 57, 54, 58, 50, 64, 58, 56, 57, 48,
-  //     52, 54, 70, 43, 59,
-  //   ],
-  // };
   const ip = getIP();
   let url = new URL(`http://${ip}:8080/players/history`);
   url.searchParams.append("id", playerId);
@@ -62,8 +55,6 @@ export async function loader({
     return response.json().then((data) => data as string);
   });
 
-  console.log(points);
-
   return { name, points };
 }
 
@@ -71,7 +62,6 @@ const Graph = () => {
   const { name, points } = useLoaderData() as Awaited<
     ReturnType<typeof loader>
   >;
-  // const navigate = useNavigate();
 
   const options = {
     responsive: true,
@@ -87,6 +77,8 @@ const Graph = () => {
   };
 
   const labels = [...Array(points.length).keys()];
+  const avg = points.reduce((a, b) => a + b, 0) / points.length;
+  const avgLine = new Array(points.length).fill(avg);
 
   const data = {
     labels,
@@ -96,6 +88,13 @@ const Graph = () => {
         data: points,
         borderColor: "rgb(255, 99, 132)",
         backgroundColor: "rgba(255, 99, 132, 0.5)",
+        tension: 0.3,
+      },
+      {
+        label: "Average",
+        data: avgLine,
+        borderColor: "rgb(99, 132, 255, 0.25)",
+        backgroundColor: "rgba(99, 132, 255, 0.1)",
       },
     ],
   };
