@@ -31,7 +31,6 @@ const SideBarButton: React.FC<SideBarButtonProps> = ({
 
 interface SideBarProps {
   groups: Group[];
-  collapsableAt: string;
   onCloseClick?: () => void;
   className?: string;
 }
@@ -39,12 +38,11 @@ interface SideBarProps {
 const SideBar: React.FC<SideBarProps> = ({
   groups,
   className,
-  collapsableAt,
   onCloseClick: onClose,
 }) => {
   return (
     <div
-      className={`bg-gray-100 w-64 border-r shrink-0 block ${collapsableAt}:static fixed ${className}`}
+      className={`bg-gray-100 w-64 border-r shrink-0 block md:static fixed ${className}`}
     >
       <div className="flex m-4 items-center justify-between space-x-8">
         <h1 className="text-4xl font-light">Groups</h1>
@@ -54,7 +52,7 @@ const SideBar: React.FC<SideBarProps> = ({
           </button>
 
           <button
-            className={`w-8 h-8 bg-gray-200 rounded-lg hover:bg-gray-300 transition ${collapsableAt}:hidden`}
+            className={`w-8 h-8 bg-gray-200 rounded-lg hover:bg-gray-300 transition md:hidden`}
             onClick={onClose}
           >
             {"<"}

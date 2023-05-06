@@ -17,7 +17,6 @@ const App = () => {
     <div className="h-screen flex bg-gray-50">
       <SideBar
         groups={groups}
-        collapsableAt="md"
         onCloseClick={() => setSideBarOpen(false)}
         className={`z-10 h-screen transition-all ${hiddenClasses}`}
       />
