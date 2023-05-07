@@ -6,16 +6,26 @@ import { IconContext } from "react-icons";
 
 interface PlayerCardProps {
   stats: PlayerStatsWithComparison;
+  maxScore: number;
   idx: number;
 }
 
 const PlayerCard: React.FC<PlayerCardProps> = ({
   stats: {
-    stats: { name, wins, points, games, pointsPerGame, winPercentage },
+    stats: {
+      name,
+      wins,
+      points,
+      games,
+      pointsPerGame,
+      winPercentage,
+      maxScore,
+    },
     placeChange,
     pointsPerGameChange: pointChange,
   },
   idx,
+  maxScore: groupMaxScore,
 }) => {
   return (
     <div className="bg-white text-gray-800 flex p-2 md:px-4 md:py-6 rounded-lg border items-center md:drop-shadow">
@@ -35,6 +45,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       </div>
       <p className="grow text-md sm:text-lg md:text-2xl font-light pr-4">
         {name}
+        {maxScore === groupMaxScore ? " 🤓" : ""}
       </p>
       <p className="w-20 text-lg md:text-2xl font-light hidden xl:block">
         {games}

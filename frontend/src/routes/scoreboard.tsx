@@ -31,7 +31,11 @@ export interface Player {
 }
 
 const Scoreboard = () => {
-  const { id, name } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
+  const {
+    id,
+    name: groupName,
+    maxScore,
+  } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
 
   const [numberGames, setNumberGames] = useState<number | "All">(10);
   const numberGamesOptions: (number | "All")[] = [10, 50, "All"];
@@ -91,7 +95,7 @@ const Scoreboard = () => {
     <Page
       titleBar={
         <div className="flex justify-between w-full items-center">
-          <h1 className="text-4xl font-light">{name}</h1>
+          <h1 className="text-4xl font-light">{groupName}</h1>
           <div className="flex flex-col items-end pr-2">
             <p className="text-gray-800">Number of Games</p>
             <select
@@ -176,7 +180,12 @@ const Scoreboard = () => {
         {playerStats.map((p, i) => (
           <div className="w-full" key={p.stats.id}>
             <Link to={`/groups/${id}/graphs/${p.stats.id}`}>
-              <PlayerCard stats={p} idx={i} key={p.stats.id} />
+              <PlayerCard
+                stats={p}
+                idx={i}
+                key={p.stats.id}
+                maxScore={maxScore}
+              />
             </Link>
           </div>
         ))}
