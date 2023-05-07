@@ -45,7 +45,11 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       </div>
       <p className="grow text-md sm:text-lg md:text-2xl font-light pr-4">
         {name}
-        {maxScore === groupMaxScore ? " 🤓" : ""}
+        {maxScore === groupMaxScore
+          ? " 🎖️ (🤓)"
+          : maxScore >= groupMaxScore * 0.94
+            ? " 🏅"
+            : ""}
       </p>
       <p className="w-20 text-lg md:text-2xl font-light hidden xl:block">
         {games}
