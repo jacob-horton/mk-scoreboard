@@ -130,7 +130,6 @@ pub async fn get_group_stats(
         });
 
         player.max_score = player.max_score.max(player_game.points);
-        println!("{:?}", player_game.points);
 
         // Skip if already got the n games
         if let Some(n) = info.n {
