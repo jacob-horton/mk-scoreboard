@@ -163,6 +163,19 @@ pub async fn list_players(data: Data<AppState>, info: Query<GroupIdData>) -> imp
     .await
     .unwrap();
 
+    // // Insert all players into new group
+    // let group = 4;
+    // for player in players.iter() {
+    //     sqlx::query!(
+    //         "INSERT INTO player_group (player_id, group_id) VALUES ($1, $2)",
+    //         player.id,
+    //         group,
+    //     )
+    //     .execute(data.pg_pool.as_ref())
+    //     .await
+    //     .unwrap();
+    // }
+
     HttpResponse::Ok().json(
         players
             .into_iter()

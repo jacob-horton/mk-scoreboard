@@ -42,7 +42,7 @@ const SideBar: React.FC<SideBarProps> = ({
 }) => {
   return (
     <div
-      className={`bg-gray-100 w-64 border-r shrink-0 block md:static fixed ${className}`}
+      className={`bg-gray-100 w-64 border-r shrink-0 md:static fixed flex flex-col ${className}`}
     >
       <div className="flex m-4 items-center justify-between space-x-8">
         <h1 className="text-4xl font-light">Groups</h1>
@@ -59,8 +59,8 @@ const SideBar: React.FC<SideBarProps> = ({
           </button>
         </div>
       </div>
-      <nav className="px-3 py-4">
-        <ul className="space-y-2 font-medium">
+      <nav className="px-3 py-4 grow flex">
+        <ul className="space-y-2 font-medium flex flex-col grow">
           {groups.map((group) => (
             <li key={group.id}>
               <SideBarButton
@@ -70,6 +70,7 @@ const SideBar: React.FC<SideBarProps> = ({
               />
             </li>
           ))}
+          <li key="space" className="grow flex h-12" />
           <li key={"Old Scores"}>
             <SideBarButton
               page={`/groups/old-scores`}
