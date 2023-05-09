@@ -103,11 +103,14 @@ pub async fn get_group_stats(
     let games: HashMap<_, _> = games.iter().map(|g| (g.id, g.max_score.unwrap())).collect();
 
     let most_recent_id = match info.skip_most_recent {
-        true => sqlx::query!("SELECT game.id FROM game ORDER BY date DESC LIMIT 1")
-            .fetch_one(data.pg_pool.as_ref())
-            .await
-            .ok()
-            .map(|x| x.id),
+        true => sqlx::query!(
+            "SELECT game.id FROM game WHERE game.group_id = $1 ORDER BY date DESC LIMIT 1",
+            info.id
+        )
+        .fetch_one(data.pg_pool.as_ref())
+        .await
+        .ok()
+        .map(|x| x.id),
         false => None,
     };
 
