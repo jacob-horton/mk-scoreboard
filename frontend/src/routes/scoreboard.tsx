@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
 import PlayerCard from "../components/PlayerCard";
-import {
-  PlayerStats,
-  PlayerStatsWithComparison,
-  getPlayerStats,
-} from "../data/playerStats";
+import { PlayerStatsWithComparison, getPlayerStats } from "../data/playerStats";
 import { Link, useLoaderData } from "react-router-dom";
 import getIP from "../data/ip";
 import { Group } from "../data/types";
 import Page from "../components/Page";
+import Dropdown from "../components/Dropdown";
 
 export async function loader({ params }: { params: { groupId: string } }) {
   const ip = getIP();
@@ -31,11 +28,9 @@ export interface Player {
 }
 
 const Scoreboard = () => {
-  const {
-    id,
-    name: groupName,
-    maxScore,
-  } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
+  const { id: groupId, name: groupName } = useLoaderData() as Awaited<
+    ReturnType<typeof loader>
+  >;
 
   const [numberGames, setNumberGames] = useState<number | "All">(10);
   const numberGamesOptions: (number | "All")[] = [10, 50, "All"];
@@ -48,8 +43,8 @@ const Scoreboard = () => {
   useEffect(() => {
     async function getStats() {
       const number = numberGames === "All" ? null : numberGames;
-      const stats = await getPlayerStats(id, number, false);
-      const prevStats = await getPlayerStats(id, number, true);
+      const stats = await getPlayerStats(groupId, number, false);
+      const prevStats = await getPlayerStats(groupId, number, true);
 
       // Sort by points per game
       stats.sort((a, b) =>
@@ -89,7 +84,7 @@ const Scoreboard = () => {
     }
 
     getStats();
-  }, [id, numberGames, sortProp]);
+  }, [groupId, numberGames, sortProp]);
 
   return (
     <Page
@@ -98,12 +93,14 @@ const Scoreboard = () => {
           <h1 className="text-4xl font-light">{groupName}</h1>
           <div className="flex flex-col items-end pr-2">
             <p className="text-gray-800">Number of Games</p>
-            <select
-              name="Number of Games"
+            <Dropdown
+              name="Number of games"
               value={numberGames}
-              className="w-24 px-2 py-2 rounded-lg"
-              onChange={(e) => {
-                const val = e.target.value;
+              options={numberGamesOptions.map((x) => ({
+                id: x,
+                value: x.toString(),
+              }))}
+              onChange={(val) => {
                 const asNumber = Number(val);
                 if (!isNaN(asNumber)) {
                   setNumberGames(asNumber);
@@ -111,15 +108,7 @@ const Scoreboard = () => {
                   setNumberGames(val);
                 }
               }}
-            >
-              {numberGamesOptions.map((val) => {
-                return (
-                  <option key={val} value={val}>
-                    {val}
-                  </option>
-                );
-              })}
-            </select>
+            />
           </div>
         </div>
       }
@@ -179,12 +168,12 @@ const Scoreboard = () => {
       <div className="overflow-scroll px-2 pt-1 pb-6 space-y-1 md:space-y-3">
         {playerStats.map((p, i) => (
           <div className="w-full" key={p.stats.id}>
-            <Link to={`/groups/${id}/graphs/${p.stats.id}`}>
+            <Link to={`/groups/${groupId}/graphs/${p.stats.id}`}>
               <PlayerCard
                 stats={p}
                 idx={i}
-                key={p.stats.id.toString() + " " + id} // TODO: fix key
-                groupId={id}
+                key={p.stats.id.toString() + " " + groupId} // TODO: fix key
+                groupId={groupId}
               />
             </Link>
           </div>
@@ -193,7 +182,7 @@ const Scoreboard = () => {
       <div className="fixed bottom-0 right-0 pr-4 pb-4 space-x-4">
         <Link
           className="px-4 py-2 rounded-lg transition bg-blue-500 text-white hover:bg-blue-400 whitespace-nowrap"
-          to={`/groups/${id}/add-game`}
+          to={`/groups/${groupId}/add-game`}
         >
           + New Game
         </Link>

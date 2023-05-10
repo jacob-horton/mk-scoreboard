@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Dropdown from "../components/Dropdown";
+import PlayerScoreInput from "../components/PlayerScoreInput";
 import { Form, useLoaderData, useNavigate } from "react-router-dom";
 import { Group, Player } from "../data/types";
 import getIP from "../data/ip";
@@ -143,12 +143,12 @@ const AddGame = () => {
         >
           {Array.from(Array(4).keys()).map((i) => {
             return (
-              <Dropdown
+              <PlayerScoreInput
                 key={i}
                 disabled={playerScores
                   .map(({ playerId }) => playerId)
                   .filter((id): id is number => id !== null)}
-                options={players}
+                players={players}
                 label={`Player ${i + 1}`}
                 value={playerScores[i].playerId ?? undefined}
                 onPlayerChange={(playerId) => {

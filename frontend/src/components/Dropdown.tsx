@@ -1,54 +1,42 @@
 import React from "react";
-import { Player } from "../data/types";
-import IntTextBox from "./IntTextBox";
 
-interface ButtonProps {
-  options: Player[];
-  disabled: number[];
-  label: string;
-  value: number | undefined;
+interface DropdownProps {
+  options: { id: number | string; value: string }[];
+  disabled?: (number | string)[];
+  name: string;
+  value?: number | string;
+  className?: string;
 
-  onPlayerChange: (playerId: number) => void;
-  onScoreChange: (score: number) => void;
+  onChange: (id: number | string) => void;
 }
 
-const Dropdown: React.FC<ButtonProps> = ({
+const Dropdown: React.FC<DropdownProps> = ({
   options,
   disabled,
-  label,
+  name,
   value,
-  onPlayerChange,
-  onScoreChange,
+  className,
+  onChange,
 }) => {
   return (
-    <div>
-      <div className="w-26">
-        <label>{label}</label>
-      </div>
-      <select
-        name={label}
-        value={value}
-        className="w-40 p-2 rounded-lg"
-        defaultValue=""
-        onChange={(e) => onPlayerChange(parseInt(e.target.value))}
-      >
-        <option value="" disabled={true}>
-          Select
-        </option>
-        {options.map((val) => {
-          return (
-            <option
-              key={val.id}
-              value={val.id}
-              disabled={disabled.includes(val.id)}
-            >
-              {val.name}
-            </option>
-          );
-        })}
-      </select>
-      <IntTextBox onChange={onScoreChange} />
-    </div>
+    <select
+      name={name}
+      value={value}
+      className={"py-2 px-3 rounded-lg " + className ?? ""}
+      defaultValue=""
+      onChange={(e) => onChange(parseInt(e.target.value))}
+    >
+      <option value="" disabled={true}>
+        Select
+      </option>
+      {options.map((x) => {
+        return (
+          <option key={x.id} value={x.id} disabled={disabled?.includes(x.id)}>
+            {x.value}
+          </option>
+        );
+      })}
+    </select>
   );
 };
 
