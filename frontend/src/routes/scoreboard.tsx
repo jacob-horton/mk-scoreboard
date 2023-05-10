@@ -183,8 +183,8 @@ const Scoreboard = () => {
               <PlayerCard
                 stats={p}
                 idx={i}
-                key={p.stats.id}
-                maxScore={maxScore}
+                key={p.stats.id.toString() + " " + id} // TODO: fix key
+                groupId={id}
               />
             </Link>
           </div>

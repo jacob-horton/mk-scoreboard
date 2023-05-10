@@ -13,3 +13,10 @@ export interface Group {
   name: string;
   maxScore: number | null;
 }
+
+export interface Badges {
+  star: number;
+  gold: number;
+  silver: number;
+  bronze: number;
+}

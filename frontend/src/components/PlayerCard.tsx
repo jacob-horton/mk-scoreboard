@@ -1,32 +1,52 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { PlayerStatsWithComparison } from "../data/playerStats";
 import { RiArrowDownSLine, RiArrowUpSLine } from "react-icons/ri";
 import { BsDash } from "react-icons/bs";
 import { IconContext } from "react-icons";
+import getIP from "../data/ip";
+import { Badges } from "../data/types";
+import Badge from "./Badge";
 
 interface PlayerCardProps {
   stats: PlayerStatsWithComparison;
-  maxScore: number;
+  groupId: number;
   idx: number;
 }
 
+async function getBadges(id: number, groupId: number) {
+  const ip = getIP();
+  const url = new URL(`http://${ip}:8080/players/badges`);
+  url.searchParams.append("id", id.toString());
+  url.searchParams.append("groupId", groupId.toString());
+
+  return fetch(url).then(async (response) => {
+    if (!response.ok) {
+      console.log("nope");
+      return { bronze: 0, silver: 0, gold: 0, star: 0 } as Badges;
+    }
+
+    return response.json().then((data) => data as Badges);
+  });
+}
+
 const PlayerCard: React.FC<PlayerCardProps> = ({
-  stats: {
-    stats: {
-      name,
-      wins,
-      points,
-      games,
-      pointsPerGame,
-      winPercentage,
-      maxScore,
-    },
-    placeChange,
-    pointsPerGameChange: pointChange,
-  },
+  stats: { stats, placeChange, pointsPerGameChange: pointChange },
   idx,
-  maxScore: groupMaxScore,
+  groupId,
 }) => {
+  const { id, name, wins, points, games, pointsPerGame, winPercentage } = stats;
+  const [badges, setBadges] = useState<Badges>({
+    bronze: 0,
+    silver: 0,
+    gold: 0,
+    star: 0,
+  });
+
+  // TODO: update whenever overall games changes
+  useEffect(() => {
+    getBadges(id, groupId).then((badges) => setBadges(badges));
+  }, [stats]);
+
   return (
     <div className="bg-white text-gray-800 flex p-2 md:px-4 md:py-6 rounded-lg border items-center md:drop-shadow">
       <div className="w-14 pr-4 flex flex-row items-center">
@@ -43,14 +63,13 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
           )}
         </IconContext.Provider>
       </div>
-      <p className="grow text-md sm:text-lg md:text-2xl font-light pr-4">
-        {name}
-        {maxScore === groupMaxScore
-          ? " 🎖️ (🤓)"
-          : maxScore >= groupMaxScore * 0.94
-            ? " 🏅"
-            : ""}
-      </p>
+      <div className="grow text-md sm:text-lg md:text-2xl font-light pr-4 whitespace-nowrap flex-row flex">
+        <p>{name}</p>
+        {badges.star > 0 && <Badge n={badges.star} icon="🎖️" />}
+        {badges.gold > 0 && <Badge n={badges.gold} icon="🥇" />}
+        {badges.silver > 0 && <Badge n={badges.silver} icon="🥈" />}
+        {badges.bronze > 0 && <Badge n={badges.bronze} icon="🥉" />}
+      </div>
       <p className="w-20 text-lg md:text-2xl font-light hidden xl:block">
         {games}
       </p>
