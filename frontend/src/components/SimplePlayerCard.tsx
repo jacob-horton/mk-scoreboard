@@ -15,12 +15,12 @@ const SimplePlayerCard: React.FC<SimplePlayerCardProps> = ({
       <p className="w-12 text-center pr-4 text-gray-400 text-2xl font-light hidden sm:block">
         {idx + 1}
       </p>
-      <p className="grow text-md sm:text-2xl font-light pr-4">{name}</p>
+      <p className="grow text-base sm:text-2xl font-light pr-4">{name}</p>
       <p className="w-20 text-2xl font-light hidden sm:block">{wins}</p>
-      <p className="w-20 sm:w-36 text-md sm:text-2xl font-light">
+      <p className="w-20 sm:w-36 text-base sm:text-2xl font-light">
         {((wins / games) * 100).toFixed(2)}%
       </p>
-      <p className="w-20 sm:w-36 text-md sm:text-2xl font-light">{games}</p>
+      <p className="w-20 sm:w-36 text-base sm:text-2xl font-light">{games}</p>
     </div>
   );
 };

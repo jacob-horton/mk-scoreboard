@@ -30,12 +30,11 @@ const Page: React.FC<PageProps> = ({ titleBar, children }) => {
     <div className="h-screen flex bg-gray-50">
       <SideBar
         groups={groups}
-        collapsableAt="md"
         onCloseClick={() => setSideBarOpen(false)}
         className={`z-10 h-screen transition-all ${hiddenClasses}`}
       />
       <div className="flex-grow" onClick={() => setSideBarOpen(() => false)}>
-        <div className="px-4 pt-4 grow flex-col flex h-screen">
+        <div className="sm:px-4 pt-4 grow flex-col flex h-screen">
           <div className="flex items-center flex-row h-20 pb-4">
             <button
               className="bg-gray-200 hover:bg-gray-300 w-8 h-8 rounded-lg mx-4 block md:hidden shrink-0"

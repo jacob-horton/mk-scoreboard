@@ -124,7 +124,7 @@ const Scoreboard = () => {
         </div>
       }
     >
-      <div className="text-gray-400 flex md:px-6 px-4">
+      <div className="text-gray-400 flex md:px-6 px-4 text-sm sm:text-base text-left">
         <p className="w-11 sm:w-14">No.</p>
         <button
           className="grow pr-4 text-left"
@@ -169,7 +169,7 @@ const Scoreboard = () => {
           Points Per Game
         </button>
         <button
-          className="w-24 block sm:hidden text-left"
+          className="w-20 block sm:hidden text-left"
           onClick={() => setSortProp("pointsPerGame")}
         >
           Points/Game
