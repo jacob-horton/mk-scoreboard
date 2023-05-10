@@ -76,13 +76,13 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       <p className="w-20 text-lg md:text-2xl font-light hidden sm:block">
         {wins}
       </p>
-      <p className="w-20 sm:w-36 text-md sm:text-lg md:text-2xl font-light">
+      <p className="w-16 sm:w-36 text-md sm:text-lg md:text-2xl font-light">
         {(winPercentage * 100).toFixed(2)}%
       </p>
       <p className="w-20 text-lg md:text-2xl font-light hidden sm:block">
         {points}
       </p>
-      <div className="w-28 sm:w-32 flex flex-row items-center">
+      <div className="w-24 sm:w-32 flex flex-row items-center">
         <p className="text-md sm:text-lg md:text-2xl font-light pr-2">
           <IconContext.Provider value={{ size: "20px", className: "ml-2" }}>
             {pointChange > 0 ? (

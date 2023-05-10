@@ -151,7 +151,7 @@ const Scoreboard = () => {
           Win Percentage
         </button>
         <button
-          className="w-20 block sm:hidden text-left"
+          className="w-16 block sm:hidden text-left"
           onClick={() => setSortProp("winPercentage")}
         >
           Win %
@@ -169,7 +169,7 @@ const Scoreboard = () => {
           Points Per Game
         </button>
         <button
-          className="w-28 block sm:hidden text-left"
+          className="w-24 block sm:hidden text-left"
           onClick={() => setSortProp("pointsPerGame")}
         >
           Points/Game
