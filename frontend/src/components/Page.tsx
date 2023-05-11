@@ -10,7 +10,7 @@ export async function loader() {
 
 export interface PageProps {
   children: ReactNode;
-  titleBar: ReactNode;
+  titleBar?: ReactNode;
 }
 
 const Page: React.FC<PageProps> = ({ titleBar, children }) => {

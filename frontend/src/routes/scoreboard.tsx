@@ -33,7 +33,7 @@ const Scoreboard = () => {
   >;
 
   const [numberGames, setNumberGames] = useState<number | "All">(10);
-  const numberGamesOptions: (number | "All")[] = [10, 50, "All"];
+  const numberGamesOptions: (number | "All")[] = [1, 5, 10, 25, 50, "All"];
 
   const [sortProp, setSortProp] = useState<string>("pointsPerGame");
 

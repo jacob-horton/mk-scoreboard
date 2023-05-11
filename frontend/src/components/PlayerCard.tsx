@@ -29,6 +29,25 @@ async function getBadges(id: number, groupId: number) {
   });
 }
 
+interface ChangeIconProps {
+  change: number;
+  className?: string;
+}
+
+const ChangeIcon: React.FC<ChangeIconProps> = ({ change, className }) => {
+  return (
+    <IconContext.Provider value={{ size: "20px", className }}>
+      {change > 0 ? (
+        <RiArrowUpSLine className="text-green-500" />
+      ) : change < 0 ? (
+        <RiArrowDownSLine className="text-red-500" />
+      ) : (
+        <BsDash className="text-gray-400" />
+      )}
+    </IconContext.Provider>
+  );
+};
+
 const PlayerCard: React.FC<PlayerCardProps> = ({
   stats: { stats, placeChange, pointsPerGameChange: pointChange },
   idx,
@@ -48,55 +67,31 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   }, [stats]);
 
   return (
-    <div className="bg-white text-gray-800 flex p-2 md:px-4 md:py-6 rounded-lg border items-center md:drop-shadow">
+    <div
+      className="flex items-center
+      p-2 md:px-4 md:py-6
+      md:drop-shadow rounded-lg border
+      bg-white text-gray-800
+      font-light text-base sm:text-lg md:text-2xl"
+    >
       <div className="w-11 sm:w-14 pr-4 flex flex-row items-center">
-        <p className="text-gray-400 text-base sm:text-lg md:text-2xl font-light">
-          {idx + 1}
-        </p>
-        <IconContext.Provider value={{ size: "20px", className: "ml-2" }}>
-          {placeChange < 0 ? (
-            <RiArrowUpSLine className="text-green-500" />
-          ) : placeChange > 0 ? (
-            <RiArrowDownSLine className="text-red-500" />
-          ) : (
-            <BsDash className="text-gray-400" />
-          )}
-        </IconContext.Provider>
+        <p className="text-gray-400">{idx + 1}</p>
+        <ChangeIcon change={-placeChange} className="ml-2" />
       </div>
-      <div className="grow text-base sm:text-lg md:text-2xl font-light pr-4 whitespace-nowrap flex-row flex">
+      <div className="grow pr-4 whitespace-nowrap flex-row flex">
         <p>{name}</p>
         {badges.star > 0 && <Badge n={badges.star} icon="🎖️" />}
         {badges.gold > 0 && <Badge n={badges.gold} icon="🥇" />}
         {badges.silver > 0 && <Badge n={badges.silver} icon="🥈" />}
         {badges.bronze > 0 && <Badge n={badges.bronze} icon="🥉" />}
       </div>
-      <p className="w-20 text-lg md:text-2xl font-light hidden xl:block">
-        {games}
-      </p>
-      <p className="w-20 text-lg md:text-2xl font-light hidden sm:block">
-        {wins}
-      </p>
-      <p className="w-16 sm:w-36 text-base sm:text-lg md:text-2xl font-light">
-        {(winPercentage * 100).toFixed(2)}%
-      </p>
-      <p className="w-20 text-lg md:text-2xl font-light hidden sm:block">
-        {points}
-      </p>
-      <div className="w-20 sm:w-32 flex flex-row items-center">
-        <p className="text-base sm:text-lg md:text-2xl font-light pr-2">
-          <IconContext.Provider value={{ size: "20px", className: "ml-2" }}>
-            {pointChange > 0 ? (
-              <RiArrowUpSLine className="w-4 sm:w-5 sm:mr-2 text-green-500" />
-            ) : pointChange < 0 ? (
-              <RiArrowDownSLine className="w-4 sm:w-5 sm:mr-2 text-red-500" />
-            ) : (
-              <BsDash className="w-4 sm:w-5 sm:mr-2 text-gray-400" />
-            )}
-          </IconContext.Provider>
-        </p>
-        <p className="text-base sm:text-lg md:text-2xl font-light">
-          {pointsPerGame.toFixed(2)}
-        </p>
+      <p className="w-20 hidden xl:block">{games}</p>
+      <p className="w-20 hidden sm:block">{wins}</p>
+      <p className="w-16 sm:w-36">{(winPercentage * 100).toFixed(2)}%</p>
+      <p className="w-20 hidden sm:block">{points}</p>
+      <div className="w-20 sm:w-32 flex flex-row items-center space-x-2">
+        <ChangeIcon change={pointChange} className="w-4 sm:2-5 sm:mr-2 ml-2" />
+        <p>{pointsPerGame.toFixed(2)}</p>
       </div>
     </div>
   );

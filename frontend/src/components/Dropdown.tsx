@@ -5,7 +5,6 @@ interface DropdownProps {
   disabled?: (number | string)[];
   name: string;
   value?: number | string;
-  className?: string;
 
   onChange: (id: number | string) => void;
 }
@@ -15,14 +14,13 @@ const Dropdown: React.FC<DropdownProps> = ({
   disabled,
   name,
   value,
-  className,
   onChange,
 }) => {
   return (
     <select
       name={name}
       value={value}
-      className={"py-2 px-3 rounded-lg " + className ?? ""}
+      className="py-2 px-3 rounded-lg"
       defaultValue=""
       onChange={(e) => onChange(parseInt(e.target.value))}
     >
