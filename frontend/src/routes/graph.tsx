@@ -1,5 +1,4 @@
-import { Form, useLoaderData, useNavigate } from "react-router-dom";
-import React from "react";
+import { useLoaderData } from "react-router-dom";
 import {
   Chart as ChartJS,
   CategoryScale,

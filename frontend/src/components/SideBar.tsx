@@ -3,15 +3,18 @@ import { Group } from "../data/types";
 import SideBarButton from "./SideBarButton";
 
 const Title: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
+  const buttonClasses = "w-8 h-8 rounded-lg transition";
   return (
     <div className="flex m-4 items-center justify-between space-x-8">
       <h1 className="text-4xl font-light">Groups</h1>
       <div className="space-x-2">
-        <button className="w-8 h-8 bg-blue-500 hover:bg-blue-400 text-white rounded-lg transition">
+        <button
+          className={`bg-blue-500 hover:bg-blue-400 text-white ${buttonClasses}`}
+        >
           +
         </button>
         <button
-          className="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-lg transition md:hidden"
+          className={`bg-gray-200 hover:bg-gray-300 md:hidden ${buttonClasses}`}
           onClick={onClose}
         >
           {"<"}
@@ -35,7 +38,13 @@ const SideBar: React.FC<SideBarProps> = ({
 }) => {
   return (
     <div
-      className={`bg-gray-100 w-64 border-r shrink-0 md:static fixed flex flex-col z-10 h-screen transition-all ${className}`}
+      className={`bg-gray-100
+        w-64 z-10 h-screen shrink-0
+        md:static fixed
+        border-r
+        flex flex-col
+        transition-all
+        ${className}`}
     >
       <Title onClose={onClose} />
       <nav className="px-3 py-4 grow flex">

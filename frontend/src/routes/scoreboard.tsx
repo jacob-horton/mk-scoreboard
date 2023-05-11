@@ -22,11 +22,6 @@ export async function loader({ params }: { params: { groupId: string } }) {
   });
 }
 
-export interface Player {
-  id: number;
-  name: string;
-}
-
 const Scoreboard = () => {
   const { id: groupId, name: groupName } = useLoaderData() as Awaited<
     ReturnType<typeof loader>
@@ -86,6 +81,42 @@ const Scoreboard = () => {
     getStats();
   }, [groupId, numberGames, sortProp]);
 
+  const headers = [
+    { text: "No.", sort: null, className: "w-11 sm:w-14" },
+    { text: "Name", sort: "name", className: "grow pr-4" },
+    {
+      text: "Games",
+      sort: "games",
+      className: "w-20 hidden xl:block",
+    },
+    { text: "Wins", sort: "wins", className: "w-20 hidden sm:block" },
+    {
+      text: "Win Percentage",
+      sort: "winPercentage",
+      className: "w-36 hidden sm:block",
+    },
+    {
+      text: "Win %",
+      sort: "winPercentage",
+      className: "w-16 block sm:hidden",
+    },
+    {
+      text: "Points",
+      sort: "points",
+      className: "w-20 hidden sm:block",
+    },
+    {
+      text: "Points Per Game",
+      sort: "pointsPerGame",
+      className: "w-32 hidden sm:block",
+    },
+    {
+      text: "Points/Game",
+      sort: "pointsPerGame",
+      className: "w-20 block sm:hidden",
+    },
+  ];
+
   return (
     <Page
       titleBar={
@@ -113,56 +144,16 @@ const Scoreboard = () => {
         </div>
       }
     >
-      <div className="text-gray-400 flex md:px-6 px-4 text-sm sm:text-base text-left">
-        <p className="w-11 sm:w-14">No.</p>
-        <button
-          className="grow pr-4 text-left"
-          onClick={() => setSortProp("name")}
-        >
-          Name
-        </button>
-        <button
-          className="w-20 hidden xl:block text-left"
-          onClick={() => setSortProp("games")}
-        >
-          Games
-        </button>
-        <button
-          className="w-20 hidden sm:block text-left"
-          onClick={() => setSortProp("wins")}
-        >
-          Wins
-        </button>
-        <button
-          className="w-36 hidden sm:block text-left"
-          onClick={() => setSortProp("winPercentage")}
-        >
-          Win Percentage
-        </button>
-        <button
-          className="w-16 block sm:hidden text-left"
-          onClick={() => setSortProp("winPercentage")}
-        >
-          Win %
-        </button>
-        <button
-          className="w-20 hidden sm:block text-left"
-          onClick={() => setSortProp("points")}
-        >
-          Points
-        </button>
-        <button
-          className="w-32 hidden sm:block text-left"
-          onClick={() => setSortProp("pointsPerGame")}
-        >
-          Points Per Game
-        </button>
-        <button
-          className="w-20 block sm:hidden text-left"
-          onClick={() => setSortProp("pointsPerGame")}
-        >
-          Points/Game
-        </button>
+      <div className="text-gray-400 flex md:px-6 px-4 text-sm sm:text-base">
+        {headers.map((h) => (
+          <button
+            key={h.text}
+            className={h.className + " text-left"}
+            onClick={h.sort ? () => setSortProp(h.sort) : undefined}
+          >
+            {h.text}
+          </button>
+        ))}
       </div>
 
       <div className="overflow-scroll px-2 pt-1 pb-6 space-y-1 md:space-y-3">
