@@ -31,7 +31,7 @@ const PlayerScoreInput: React.FC<PlayerScoreInputProps> = ({
         disabled={disabled}
         value={value}
         name={label}
-        onChange={(id) => onPlayerChange(id as number)}
+        onChange={(id) => onPlayerChange(parseInt(id))}
       />
       <IntTextBox onChange={onScoreChange} />
     </div>

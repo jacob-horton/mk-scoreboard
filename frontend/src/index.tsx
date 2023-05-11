@@ -1,6 +1,5 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App, { loader as appLoader } from "./App.tsx";
 import "./index.css";
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
 import Scoreboard, { loader as groupLoader } from "./routes/scoreboard.tsx";
@@ -13,7 +12,6 @@ const router = createBrowserRouter([
   {
     path: "/*",
     element: <Outlet />,
-    loader: appLoader,
     errorElement: <p>404 Page Not Found</p>,
     children: [
       {
@@ -45,13 +43,13 @@ const router = createBrowserRouter([
         loader: addGameLoader,
       },
       {
-        path: "groups/old-scores",
-        element: <SimpleScoreboard />,
-      },
-      {
         path: "groups/:groupId/graphs/:playerId",
         element: <Graph />,
         loader: graphLoader,
+      },
+      {
+        path: "groups/old-scores",
+        element: <SimpleScoreboard />,
       },
     ],
   },

@@ -31,7 +31,7 @@ const Page: React.FC<PageProps> = ({ titleBar, children }) => {
       <SideBar
         groups={groups}
         onCloseClick={() => setSideBarOpen(false)}
-        className={`z-10 h-screen transition-all ${hiddenClasses}`}
+        className={hiddenClasses}
       />
       <div className="flex-grow" onClick={() => setSideBarOpen(() => false)}>
         <div className="sm:px-4 pt-4 grow flex-col flex h-screen">
