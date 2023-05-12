@@ -39,8 +39,9 @@ const SideBar: React.FC<SideBarProps> = ({
   return (
     <div
       className={`bg-gray-100
-        w-64 z-10 h-screen shrink-0
+        w-64 z-10 shrink-0
         md:static fixed
+        bottom-0 top-0
         border-r
         flex flex-col
         transition-all

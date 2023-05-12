@@ -34,7 +34,7 @@ const Page: React.FC<PageProps> = ({ titleBar, children }) => {
         className={hiddenClasses}
       />
       <div className="flex-grow" onClick={() => setSideBarOpen(() => false)}>
-        <div className="sm:px-4 pt-4 grow flex-col flex h-screen">
+        <div className="sm:px-4 pt-4 grow flex-col flex h-full">
           <div className="flex items-center flex-row h-20 pb-4">
             <button
               className="bg-gray-200 hover:bg-gray-300 w-8 h-8 rounded-lg mx-4 block md:hidden shrink-0"

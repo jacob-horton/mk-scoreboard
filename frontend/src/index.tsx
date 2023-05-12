@@ -13,11 +13,7 @@ import ItemGenerator from "./routes/itemGenerator.tsx";
 const router = createBrowserRouter([
   {
     path: "/*",
-    element: (
-      <div className="h-full">
-        <Outlet />
-      </div>
-    ),
+    element: <Outlet />,
     errorElement: <p>404 Page Not Found</p>,
     children: [
       {
@@ -67,6 +63,8 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <div className="h-full">
+      <RouterProvider router={router} />
+    </div>
   </React.StrictMode>
 );
