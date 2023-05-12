@@ -1,32 +1,14 @@
-import React, { useEffect, useState } from "react";
 import { PlayerStatsWithComparison } from "../data/playerStats";
 import { RiArrowDownSLine, RiArrowUpSLine } from "react-icons/ri";
 import { BsDash } from "react-icons/bs";
 import { IconContext } from "react-icons";
-import getIP from "../data/ip";
 import { Badges } from "../data/types";
 import Badge from "./Badge";
 
 interface PlayerCardProps {
   stats: PlayerStatsWithComparison;
-  groupId: number;
+  badges: Badges;
   idx: number;
-}
-
-async function getBadges(id: number, groupId: number) {
-  const ip = getIP();
-  const url = new URL(`http://${ip}:8080/players/badges`);
-  url.searchParams.append("id", id.toString());
-  url.searchParams.append("groupId", groupId.toString());
-
-  return fetch(url).then(async (response) => {
-    if (!response.ok) {
-      console.log("nope");
-      return { bronze: 0, silver: 0, gold: 0, star: 0 } as Badges;
-    }
-
-    return response.json().then((data) => data as Badges);
-  });
 }
 
 interface ChangeIconProps {
@@ -51,20 +33,9 @@ const ChangeIcon: React.FC<ChangeIconProps> = ({ change, className }) => {
 const PlayerCard: React.FC<PlayerCardProps> = ({
   stats: { stats, placeChange, pointsPerGameChange: pointChange },
   idx,
-  groupId,
+  badges,
 }) => {
-  const { id, name, wins, points, games, pointsPerGame, winPercentage } = stats;
-  const [badges, setBadges] = useState<Badges>({
-    bronze: 0,
-    silver: 0,
-    gold: 0,
-    star: 0,
-  });
-
-  // TODO: update whenever overall games changes
-  useEffect(() => {
-    getBadges(id, groupId).then((badges) => setBadges(badges));
-  }, [stats]);
+  const { name, wins, points, games, pointsPerGame, winPercentage } = stats;
 
   return (
     <div

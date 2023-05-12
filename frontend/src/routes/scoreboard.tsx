@@ -3,7 +3,7 @@ import PlayerCard from "../components/PlayerCard";
 import { PlayerStatsWithComparison, getPlayerStats } from "../data/playerStats";
 import { Link, useLoaderData } from "react-router-dom";
 import getIP from "../data/ip";
-import { Group } from "../data/types";
+import { Badges, Group } from "../data/types";
 import Page from "../components/Page";
 import Dropdown from "../components/Dropdown";
 
@@ -19,6 +19,35 @@ export async function loader({ params }: { params: { groupId: string } }) {
     }
 
     return response.json().then((data) => data as Group);
+  });
+}
+
+async function getBadges(ids: number[], groupId: number) {
+  if (ids.length == 0) {
+    return new Map();
+  }
+
+  const ip = getIP();
+  const url = new URL(`http://${ip}:8080/players/badges`);
+  url.searchParams.append("ids", ids.join(","));
+  url.searchParams.append("groupId", groupId.toString());
+
+  return fetch(url).then(async (response) => {
+    if (!response.ok) {
+      console.log("nope");
+      return new Map();
+    }
+
+    return response.json().then((resp) => {
+      const data = resp as { id: number; badges: Badges }[];
+      let badgeMap: Map<number, Badges> = new Map();
+
+      for (const badges of data) {
+        badgeMap.set(badges.id, badges.badges);
+      }
+
+      return badgeMap;
+    });
   });
 }
 
@@ -40,6 +69,10 @@ const Scoreboard = () => {
       const number = numberGames === "All" ? null : numberGames;
       const stats = await getPlayerStats(groupId, number, false);
       const prevStats = await getPlayerStats(groupId, number, true);
+      const badges = await getBadges(
+        stats.map((p) => p.id),
+        groupId
+      );
 
       // Sort by points per game
       stats.sort((a, b) =>
@@ -64,6 +97,7 @@ const Scoreboard = () => {
             stats: s,
             pointsPerGameChange: 0,
             placeChange: 0,
+            badges: { star: 0, gold: 0, silver: 0, bronze: 0 },
           } as PlayerStatsWithComparison;
         }
 
@@ -72,6 +106,12 @@ const Scoreboard = () => {
           stats: s,
           pointsPerGameChange: s.points / s.games - prev.points / prev.games,
           placeChange: place - prevPlace,
+          badges: badges.get(s.id) ?? {
+            star: 0,
+            gold: 0,
+            silver: 0,
+            bronze: 0,
+          },
         } as PlayerStatsWithComparison;
       });
 
@@ -164,7 +204,7 @@ const Scoreboard = () => {
                 stats={p}
                 idx={i}
                 key={p.stats.id.toString() + " " + groupId} // TODO: fix key
-                groupId={groupId}
+                badges={p.badges}
               />
             </Link>
           </div>
