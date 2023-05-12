@@ -39,7 +39,7 @@ const SideBar: React.FC<SideBarProps> = ({
   return (
     <div
       className={`bg-gray-100
-        w-64 z-10 h-full shrink-0
+        w-64 z-10 h-screen shrink-0
         md:static fixed
         border-r
         flex flex-col
