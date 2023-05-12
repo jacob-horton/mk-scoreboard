@@ -13,7 +13,13 @@ import ItemGenerator from "./routes/itemGenerator.tsx";
 const router = createBrowserRouter([
   {
     path: "/*",
-    element: <Outlet />,
+    element: (
+      <div>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <Outlet />
+      </div>
+    ),
     errorElement: <p>404 Page Not Found</p>,
     children: [
       {
