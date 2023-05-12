@@ -14,12 +14,8 @@ const router = createBrowserRouter([
   {
     path: "/*",
     element: (
-      <div>
-        <meta name="apple-mobile-web-app-capable" content="yes">
-          <meta name="apple-mobile-web-app-capable" content="yes">
-            <Outlet />
-          </meta>
-        </meta>
+      <div className="h-full">
+        <Outlet />
       </div>
     ),
     errorElement: <p>404 Page Not Found</p>,
