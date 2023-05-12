@@ -29,7 +29,7 @@ const ItemGenerator = () => {
           {[...Array(numItems)].map((_, i) => (
             <img
               key={i}
-              src={`public/items/${i}.png`}
+              src={`items/${i}.png`}
               className={`w-24 rounded-lg p-2 duration-75 transition ${selection.includes(i) ? selected : unselected
                 }`}
             />
