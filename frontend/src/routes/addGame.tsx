@@ -13,7 +13,7 @@ const AddGame = () => {
 
   const numPlayers = 4;
   const [playerScores, setPlayerScores] = useState<PlayerScore[]>(
-    Array(numPlayers).map(() => ({ playerId: null, score: 0 }))
+    [...Array(numPlayers)].map(() => ({ playerId: null, score: 0 }))
   );
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
