@@ -24,13 +24,13 @@ const ItemGenerator = () => {
 
   return (
     <Page titleBar={<h1 className="text-4xl font-light">Randomiser</h1>}>
-      <div className="space-y-4 px-4">
+      <div className="space-y-4 px-4 sm:px-0">
         <div className="grid grid-cols-6 gap-1 sm:gap-4 w-max">
           {[...Array(numItems)].map((_, i) => (
             <img
               key={i}
               src={`items/${i}.png`}
-              className={`w-10 sm:w-24 rounded-lg p-1 sm:p-2 duration-75 transition ${selection.includes(i) ? selected : unselected
+              className={`w-14 sm:w-24 rounded-lg p-1 sm:p-2 duration-75 transition ${selection.includes(i) ? selected : unselected
                 }`}
             />
           ))}
