@@ -20,3 +20,12 @@ export interface Badges {
   silver: number;
   bronze: number;
 }
+
+export function noBadges() {
+  return {
+    star: 0,
+    gold: 0,
+    silver: 0,
+    bronze: 0,
+  } as Badges;
+}

@@ -7,7 +7,7 @@ import {
 } from "../data/playerStats";
 import { Link, useLoaderData } from "react-router-dom";
 import getIP from "../data/ip";
-import { Badges, Group } from "../data/types";
+import { Badges, Group, noBadges } from "../data/types";
 import Page from "../components/Page";
 import Dropdown from "../components/Dropdown";
 
@@ -89,58 +89,67 @@ const Scoreboard = () => {
   const [numberGames, setNumberGames] = useState<number | "All">(10);
   const numberGamesOptions: (number | "All")[] = [1, 5, 10, 25, 50, "All"];
 
+  const [badges, setBadges] = useState<Map<number, Badges>>(new Map());
+
   const [sortProp, setSort] = useState<Sort>({
     prop: "pointsPerGame",
     reversed: true,
   });
 
-  const [playerStats, setPlayerStats] = useState<PlayerStatsWithComparison[]>(
-    []
-  );
+  const [detailedPlayerStats, setDetailedPlayerStats] = useState<
+    PlayerStatsWithComparison[]
+  >([]);
+
+  const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
+  const [prevPlayerStats, setPrevPlayerStats] = useState<PlayerStats[]>([]);
   useEffect(() => {
     async function getStats() {
       const number = numberGames === "All" ? null : numberGames;
       const stats = await getPlayerStats(groupId, number, false);
       const prevStats = await getPlayerStats(groupId, number, true);
+
+      setPlayerStats(stats);
+      setPrevPlayerStats(prevStats);
+
       const badges = await getBadges(
         stats.map((p) => p.id),
         groupId
       );
 
-      const sort = getSort(sortProp);
-      stats.sort(sort);
-      prevStats.sort(sort);
-
-      const comparisonStats = stats.map((s, place) => {
-        const prev = prevStats.find((p) => p.id === s.id);
-        if (prev === undefined) {
-          return {
-            stats: s,
-            pointsPerGameChange: 0,
-            placeChange: 0,
-            badges: { star: 0, gold: 0, silver: 0, bronze: 0 },
-          } as PlayerStatsWithComparison;
-        }
-
-        const prevPlace = prevStats.indexOf(prev);
-        return {
-          stats: s,
-          pointsPerGameChange: s.points / s.games - prev.points / prev.games,
-          placeChange: place - prevPlace,
-          badges: badges.get(s.id) ?? {
-            star: 0,
-            gold: 0,
-            silver: 0,
-            bronze: 0,
-          },
-        } as PlayerStatsWithComparison;
-      });
-
-      setPlayerStats(comparisonStats);
+      setBadges(badges);
     }
 
     getStats();
-  }, [groupId, numberGames, sortProp]);
+  }, [groupId, numberGames]);
+
+  useEffect(() => {
+    const sort = getSort(sortProp);
+    const stats = [...playerStats];
+    const prevStats = [...prevPlayerStats];
+
+    stats.sort(sort);
+    prevStats.sort(sort);
+
+    const comparisonStats = stats.map((s, place) => {
+      const prev = prevStats.find((p) => p.id === s.id);
+      if (prev === undefined) {
+        return {
+          stats: s,
+          pointsPerGameChange: 0,
+          placeChange: 0,
+        } as PlayerStatsWithComparison;
+      }
+
+      const prevPlace = prevStats.indexOf(prev);
+      return {
+        stats: s,
+        pointsPerGameChange: s.points / s.games - prev.points / prev.games,
+        placeChange: place - prevPlace,
+      } as PlayerStatsWithComparison;
+    });
+
+    setDetailedPlayerStats(comparisonStats);
+  }, [playerStats, prevPlayerStats, sortProp]);
 
   const headers: Header[] = [
     { text: "No.", sort: null, className: "w-11 sm:w-14" },
@@ -239,14 +248,14 @@ const Scoreboard = () => {
       </div>
 
       <div className="overflow-scroll px-2 pt-1 pb-6 space-y-1 md:space-y-3">
-        {playerStats.map((p, i) => (
+        {detailedPlayerStats.map((p, i) => (
           <div className="w-full" key={p.stats.id}>
             <Link to={`/groups/${groupId}/graphs/${p.stats.id}`}>
               <PlayerCard
                 stats={p}
                 idx={i}
                 key={p.stats.id.toString() + " " + groupId} // TODO: fix key
-                badges={p.badges}
+                badges={badges.get(p.stats.id) ?? noBadges()}
               />
             </Link>
           </div>
