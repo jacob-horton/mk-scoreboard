@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import PlayerCard from "../components/PlayerCard";
-import { PlayerStatsWithComparison, getPlayerStats } from "../data/playerStats";
+import {
+  PlayerStats,
+  PlayerStatsWithComparison,
+  getPlayerStats,
+} from "../data/playerStats";
 import { Link, useLoaderData } from "react-router-dom";
 import getIP from "../data/ip";
 import { Badges, Group } from "../data/types";
@@ -51,6 +55,32 @@ async function getBadges(ids: number[], groupId: number) {
   });
 }
 
+type SortFunc = (a: PlayerStats, b: PlayerStats) => number;
+
+function getSort(sort: Sort): SortFunc {
+  return (a, b) => {
+    const left = sort.reversed ? 1 : -1;
+    const right = left * -1;
+
+    if (a[sort.prop] === b[sort.prop]) {
+      return a.id < b.id ? left : right;
+    } else {
+      return a[sort.prop] < b[sort.prop] ? left : right;
+    }
+  };
+}
+
+interface Sort {
+  prop: keyof PlayerStats;
+  reversed: boolean;
+}
+
+interface Header {
+  sort: Sort | null;
+  text: string;
+  className: string;
+}
+
 const Scoreboard = () => {
   const { id: groupId, name: groupName } = useLoaderData() as Awaited<
     ReturnType<typeof loader>
@@ -59,7 +89,10 @@ const Scoreboard = () => {
   const [numberGames, setNumberGames] = useState<number | "All">(10);
   const numberGamesOptions: (number | "All")[] = [1, 5, 10, 25, 50, "All"];
 
-  const [sortProp, setSortProp] = useState<string>("pointsPerGame");
+  const [sortProp, setSort] = useState<Sort>({
+    prop: "pointsPerGame",
+    reversed: true,
+  });
 
   const [playerStats, setPlayerStats] = useState<PlayerStatsWithComparison[]>(
     []
@@ -74,21 +107,9 @@ const Scoreboard = () => {
         groupId
       );
 
-      // Sort by points per game
-      stats.sort((a, b) =>
-        a[sortProp] < b[sortProp]
-          ? 1
-          : a[sortProp] > b[sortProp]
-            ? -1
-            : a.id - b.id
-      );
-      prevStats.sort((a, b) =>
-        a[sortProp] < b[sortProp]
-          ? 1
-          : a[sortProp] > b[sortProp]
-            ? -1
-            : a.id - b.id
-      );
+      const sort = getSort(sortProp);
+      stats.sort(sort);
+      prevStats.sort(sort);
 
       const comparisonStats = stats.map((s, place) => {
         const prev = prevStats.find((p) => p.id === s.id);
@@ -121,38 +142,46 @@ const Scoreboard = () => {
     getStats();
   }, [groupId, numberGames, sortProp]);
 
-  const headers = [
+  const headers: Header[] = [
     { text: "No.", sort: null, className: "w-11 sm:w-14" },
-    { text: "Name", sort: "name", className: "grow pr-4" },
+    {
+      text: "Name",
+      sort: { prop: "name", reversed: false },
+      className: "grow pr-4",
+    },
     {
       text: "Games",
-      sort: "games",
+      sort: { prop: "games", reversed: true },
       className: "w-20 hidden xl:block",
     },
-    { text: "Wins", sort: "wins", className: "w-20 hidden sm:block" },
+    {
+      text: "Wins",
+      sort: { prop: "wins", reversed: true },
+      className: "w-20 hidden sm:block",
+    },
     {
       text: "Win Percentage",
-      sort: "winPercentage",
+      sort: { prop: "winPercentage", reversed: true },
       className: "w-36 hidden sm:block",
     },
     {
       text: "Win %",
-      sort: "winPercentage",
+      sort: { prop: "winPercentage", reversed: true },
       className: "w-16 block sm:hidden",
     },
     {
       text: "Points",
-      sort: "points",
+      sort: { prop: "points", reversed: true },
       className: "w-20 hidden sm:block",
     },
     {
       text: "Points Per Game",
-      sort: "pointsPerGame",
+      sort: { prop: "pointsPerGame", reversed: true },
       className: "w-32 hidden sm:block",
     },
     {
       text: "Points/Game",
-      sort: "pointsPerGame",
+      sort: { prop: "pointsPerGame", reversed: true },
       className: "w-20 block sm:hidden",
     },
   ];
@@ -189,7 +218,20 @@ const Scoreboard = () => {
           <button
             key={h.text}
             className={h.className + " text-left"}
-            onClick={h.sort ? () => setSortProp(h.sort) : undefined}
+            onClick={() => {
+              if (h.sort !== null) {
+                // This line stops TS complaining h.sort might be null
+                const sort: Sort = h.sort;
+
+                setSort((prevSort) => {
+                  // Reverse sort if already on this property
+                  if (prevSort.prop === sort.prop)
+                    return { ...sort, reversed: !prevSort.reversed };
+
+                  return sort;
+                });
+              }
+            }}
           >
             {h.text}
           </button>
