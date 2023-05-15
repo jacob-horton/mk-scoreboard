@@ -243,10 +243,10 @@ pub async fn head_to_head_history(
     .await
     .unwrap();
 
-    let mut response: HashMap<i32, HeadToHeadHistorySingle> = HashMap::with_capacity(2);
+    let mut players: HashMap<i32, HeadToHeadHistorySingle> = HashMap::with_capacity(2);
 
     for game in player_games {
-        let player = response
+        let player = players
             .entry(game.player_id)
             .or_insert(HeadToHeadHistorySingle {
                 id: game.player_id,
@@ -263,7 +263,9 @@ pub async fn head_to_head_history(
         player.history.push(game.points);
     }
 
-    HttpResponse::Ok().json(response.values().collect_vec())
+    let mut response = players.values().collect_vec();
+    response.sort_by(|a, b| a.id.cmp(&b.id));
+    HttpResponse::Ok().json(response)
 }
 
 #[get("/players/head_to_head")]
