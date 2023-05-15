@@ -32,6 +32,7 @@ async function getStats(player1Id: number, player2Id: number, groupId: number) {
   url.searchParams.append("id1", player1Id.toString());
   url.searchParams.append("id2", player2Id.toString());
   url.searchParams.append("groupId", groupId.toString());
+  url.searchParams.append("n", "20");
 
   const points = await fetch(url).then(async (response) => {
     if (!response.ok) {
@@ -63,7 +64,7 @@ const HeadToHeadStats: React.FC<HeadToHeadStatsProps> = ({ points }) => {
       },
     },
     interaction: {
-      mode: "nearest" as const,
+      mode: "x" as const,
       axis: "r" as const,
     },
   };
@@ -85,7 +86,7 @@ const HeadToHeadStats: React.FC<HeadToHeadStatsProps> = ({ points }) => {
       (x) => x + 1
     );
 
-    const hitRadius = 8;
+    const hitRadius = 5;
     const colours = ["rgb(255, 99, 132)", "rgb(99, 132, 255)"];
     const data = {
       labels,
