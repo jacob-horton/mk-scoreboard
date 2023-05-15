@@ -9,6 +9,9 @@ import SimpleScoreboard from "./routes/simpleScoreboard.tsx";
 import Graph, { loader as graphLoader } from "./routes/graph.tsx";
 import Page from "./components/Page.tsx";
 import ItemGenerator from "./routes/itemGenerator.tsx";
+import HeadToHead, {
+  loader as headToHeadLoader,
+} from "./routes/headToHead.tsx";
 
 const router = createBrowserRouter([
   {
@@ -48,6 +51,11 @@ const router = createBrowserRouter([
         path: "groups/:groupId/graphs/:playerId",
         element: <Graph />,
         loader: graphLoader,
+      },
+      {
+        path: "groups/:groupId/head_to_head/:player1Id/:player2Id",
+        element: <HeadToHead />,
+        loader: headToHeadLoader,
       },
       {
         path: "groups/old-scores",
