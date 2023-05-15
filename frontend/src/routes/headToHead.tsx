@@ -12,6 +12,10 @@ import {
 import { Line } from "react-chartjs-2";
 import getIP from "../data/ip";
 import Page from "../components/Page";
+import { loader } from "./functions/addGame";
+import { useEffect, useState } from "react";
+import { Player } from "../data/types";
+import Dropdown from "../components/Dropdown";
 
 ChartJS.register(
   CategoryScale,
@@ -23,17 +27,12 @@ ChartJS.register(
   Legend
 );
 
-export async function loader({
-  params,
-}: {
-  params: { groupId: string; player1Id: string; player2Id: string };
-}) {
-  const { groupId, player1Id, player2Id } = params;
+async function getStats(player1Id: number, player2Id: number, groupId: number) {
   const ip = getIP();
   let url = new URL(`http://${ip}:8080/players/head_to_head_history`);
-  url.searchParams.append("id1", player1Id);
-  url.searchParams.append("id2", player2Id);
-  url.searchParams.append("groupId", groupId);
+  url.searchParams.append("id1", player1Id.toString());
+  url.searchParams.append("id2", player2Id.toString());
+  url.searchParams.append("groupId", groupId.toString());
 
   const points = await fetch(url).then(async (response) => {
     if (!response.ok) {
@@ -52,9 +51,11 @@ export async function loader({
   return points;
 }
 
-const HeadToHead = () => {
-  const points = useLoaderData() as Awaited<ReturnType<typeof loader>>;
+interface HeadToHeadStatsProps {
+  points: Awaited<ReturnType<typeof getStats>> | null;
+}
 
+const HeadToHeadStats: React.FC<HeadToHeadStatsProps> = ({ points }) => {
   const options = {
     responsive: true,
     plugins: {
@@ -64,32 +65,83 @@ const HeadToHead = () => {
     },
   };
 
-  // TODO: handle no games in common - points will be empty, so no names
-  const title = `${points[0].name} against ${points[1].name}`;
+  if (points !== null) {
+    // TODO: handle no games in common - points will be empty, so no names
+    const title = `${points[0].name} against ${points[1].name}`;
 
-  if (points.length === 0) {
-    <Page titleBar={<h1 className="text-4xl font-light">{title}</h1>}>
-      <p>You have no games in common</p>
-    </Page>;
+    if (points.length === 0) {
+      <Page titleBar={<h1 className="text-4xl font-light">{title}</h1>}>
+        <p>You have no games in common</p>
+      </Page>;
+    }
+
+    const labels = [...Array(points[0].history.length).keys()].map(
+      (x) => x + 1
+    );
+
+    const colours = ["rgb(255, 99, 132)", "rgb(99, 132, 255)"];
+    const data = {
+      labels,
+      datasets: points.map((player, i) => ({
+        label: player.name,
+        data: player.history,
+        borderColor: colours[i],
+        backgroundColor: colours[i].replace(")", ", 0.5)"),
+        tension: 0.3,
+      })),
+    };
+
+    return <Line options={options} data={data} />;
+  } else {
+    return <></>;
   }
+};
 
-  const labels = [...Array(points[0].history.length).keys()].map((x) => x + 1);
+const HeadToHead = () => {
+  const { group, players: allPlayers } = useLoaderData() as Awaited<
+    ReturnType<typeof loader>
+  >;
 
-  const colours = ["rgb(255, 99, 132)", "rgb(99, 132, 255)"];
-  const data = {
-    labels,
-    datasets: points.map((player, i) => ({
-      label: player.name,
-      data: player.history,
-      borderColor: colours[i],
-      backgroundColor: colours[i].replace(")", ", 0.5)"),
-      tension: 0.3,
-    })),
-  };
+  const [players, setPlayers] = useState<(number | null)[]>([null, null]);
+  const [points, setPoints] = useState<Awaited<
+    ReturnType<typeof getStats>
+  > | null>(null);
 
+  useEffect(() => {
+    if (!players.some((p) => p === null)) {
+      async function updateStats() {
+        setPoints(
+          await getStats(players[0] as number, players[1] as number, group.id)
+        );
+      }
+
+      updateStats();
+    }
+  }, [players]);
+
+  // TODO: tidy, remove duplication
   return (
-    <Page titleBar={<h1 className="text-4xl font-light">{title}</h1>}>
-      <Line options={options} data={data} />
+    <Page titleBar={<h1 className="text-4xl font-light">Head to Head</h1>}>
+      <p>Players</p>
+      <div className="space-x-4 my-2">
+        {players.map((p, i) => (
+          <Dropdown
+            options={allPlayers.map((p) => ({ id: p.id, value: p.name }))}
+            disabled={players.filter((p) => p !== null).map((p) => p as number)}
+            value={p ?? undefined}
+            name={i.toString()}
+            onChange={(id) => {
+              setPlayers((prev) => {
+                let newPlayers = [...prev];
+                newPlayers[i] = parseInt(id);
+                return newPlayers;
+              });
+            }}
+            key={i}
+          />
+        ))}
+      </div>
+      <HeadToHeadStats points={points} />
     </Page>
   );
 };
