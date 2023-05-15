@@ -66,7 +66,10 @@ const HeadToHeadStats: React.FC<HeadToHeadStatsProps> = ({ points }) => {
   };
 
   if (points !== null) {
-    // TODO: handle no games in common - points will be empty, so no names
+    if (points.length === 0) {
+      return <p>You have not had any games together yet</p>;
+    }
+
     const title = `${points[0].name} against ${points[1].name}`;
 
     if (points.length === 0) {
