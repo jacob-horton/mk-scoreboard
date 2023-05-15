@@ -76,7 +76,7 @@ const Graph = () => {
   const avg = points.reduce((a, b) => a + b, 0) / points.length;
   const avgLine = new Array(points.length).fill(avg);
 
-  const hitRadius = 7;
+  const hitRadius = 8;
   const data = {
     labels,
     datasets: [

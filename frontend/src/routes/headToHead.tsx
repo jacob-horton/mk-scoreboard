@@ -85,6 +85,7 @@ const HeadToHeadStats: React.FC<HeadToHeadStatsProps> = ({ points }) => {
       (x) => x + 1
     );
 
+    const hitRadius = 8;
     const colours = ["rgb(255, 99, 132)", "rgb(99, 132, 255)"];
     const data = {
       labels,
@@ -93,8 +94,8 @@ const HeadToHeadStats: React.FC<HeadToHeadStatsProps> = ({ points }) => {
         data: player.history,
         borderColor: colours[i],
         backgroundColor: colours[i].replace(")", ", 0.5)"),
-        pointHitRadius: 3,
-        pointHoverRadius: 3,
+        pointHitRadius: hitRadius,
+        pointHoverRadius: hitRadius,
         tension: 0.3,
       })),
     };
