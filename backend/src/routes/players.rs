@@ -263,7 +263,13 @@ pub async fn head_to_head_history(
         player.history.push(game.points);
     }
 
-    let mut response = players.values().collect_vec();
+    let mut response = players
+        .into_values()
+        .map(|x| HeadToHeadHistorySingle {
+            history: x.history.into_iter().rev().collect_vec(),
+            ..x
+        })
+        .collect_vec();
     response.sort_by(|a, b| a.id.cmp(&b.id));
     HttpResponse::Ok().json(response)
 }
