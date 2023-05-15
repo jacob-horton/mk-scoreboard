@@ -125,26 +125,30 @@ const HeadToHead = () => {
   // TODO: tidy, remove duplication
   return (
     <Page titleBar={<h1 className="text-4xl font-light">Head to Head</h1>}>
-      <p>Players</p>
-      <div className="space-x-4 my-2">
-        {players.map((p, i) => (
-          <Dropdown
-            options={allPlayers.map((p) => ({ id: p.id, value: p.name }))}
-            disabled={players.filter((p) => p !== null).map((p) => p as number)}
-            value={p ?? undefined}
-            name={i.toString()}
-            onChange={(id) => {
-              setPlayers((prev) => {
-                let newPlayers = [...prev];
-                newPlayers[i] = parseInt(id);
-                return newPlayers;
-              });
-            }}
-            key={i}
-          />
-        ))}
+      <div className="sm:px-0 px-4">
+        <p>Players</p>
+        <div className="space-x-4 my-2">
+          {players.map((p, i) => (
+            <Dropdown
+              options={allPlayers.map((p) => ({ id: p.id, value: p.name }))}
+              disabled={players
+                .filter((p) => p !== null)
+                .map((p) => p as number)}
+              value={p ?? undefined}
+              name={i.toString()}
+              onChange={(id) => {
+                setPlayers((prev) => {
+                  let newPlayers = [...prev];
+                  newPlayers[i] = parseInt(id);
+                  return newPlayers;
+                });
+              }}
+              key={i}
+            />
+          ))}
+        </div>
+        <HeadToHeadStats points={points} />
       </div>
-      <HeadToHeadStats points={points} />
     </Page>
   );
 };
