@@ -14,7 +14,6 @@ import getIP from "../data/ip";
 import Page from "../components/Page";
 import { loader } from "./functions/addGame";
 import { useEffect, useState } from "react";
-import { Player } from "../data/types";
 import Dropdown from "../components/Dropdown";
 
 ChartJS.register(
@@ -63,6 +62,10 @@ const HeadToHeadStats: React.FC<HeadToHeadStatsProps> = ({ points }) => {
         position: "top" as const,
       },
     },
+    interaction: {
+      mode: "nearest" as const,
+      axis: "r" as const,
+    },
   };
 
   if (points !== null) {
@@ -90,6 +93,8 @@ const HeadToHeadStats: React.FC<HeadToHeadStatsProps> = ({ points }) => {
         data: player.history,
         borderColor: colours[i],
         backgroundColor: colours[i].replace(")", ", 0.5)"),
+        pointHitRadius: 3,
+        pointHoverRadius: 3,
         tension: 0.3,
       })),
     };
