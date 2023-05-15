@@ -76,6 +76,7 @@ const Graph = () => {
   const avg = points.reduce((a, b) => a + b, 0) / points.length;
   const avgLine = new Array(points.length).fill(avg);
 
+  const hitRadius = 7;
   const data = {
     labels,
     datasets: [
@@ -84,8 +85,8 @@ const Graph = () => {
         data: points,
         borderColor: "rgb(255, 99, 132)",
         backgroundColor: "rgba(255, 99, 132, 0.5)",
-        pointHitRadius: 5,
-        pointHoverRadius: 5,
+        pointHitRadius: hitRadius,
+        pointHoverRadius: hitRadius,
         tension: 0.3,
       },
       {
@@ -93,8 +94,8 @@ const Graph = () => {
         data: avgLine,
         borderColor: "rgb(99, 132, 255, 0.25)",
         backgroundColor: "rgba(99, 132, 255, 0.1)",
-        pointHitRadius: 5,
-        pointHoverRadius: 5,
+        pointHitRadius: hitRadius,
+        pointHoverRadius: hitRadius,
       },
     ],
   };
