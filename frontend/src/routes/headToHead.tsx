@@ -15,6 +15,9 @@ import Page from "../components/Page";
 import { loader } from "./functions/addGame";
 import { useEffect, useState } from "react";
 import Dropdown from "../components/Dropdown";
+import { PlayerStats, getHeadToHeadStats } from "../data/playerStats";
+import { PlayerCard } from "../components/PlayerCard";
+import HeaderBar, { Sort, getSort } from "../components/HeaderBar";
 
 ChartJS.register(
   CategoryScale,
@@ -26,13 +29,21 @@ ChartJS.register(
   Legend
 );
 
-async function getStats(player1Id: number, player2Id: number, groupId: number) {
+async function getHistory(
+  player1Id: number,
+  player2Id: number,
+  groupId: number,
+  nGames?: number
+) {
   const ip = getIP();
   let url = new URL(`http://${ip}:8080/players/head_to_head_history`);
   url.searchParams.append("id1", player1Id.toString());
   url.searchParams.append("id2", player2Id.toString());
   url.searchParams.append("groupId", groupId.toString());
-  url.searchParams.append("n", "20");
+
+  if (nGames !== undefined) {
+    url.searchParams.append("n", nGames.toString());
+  }
 
   const points = await fetch(url).then(async (response) => {
     if (!response.ok) {
@@ -52,10 +63,25 @@ async function getStats(player1Id: number, player2Id: number, groupId: number) {
 }
 
 interface HeadToHeadStatsProps {
-  points: Awaited<ReturnType<typeof getStats>> | null;
+  points: Awaited<ReturnType<typeof getHistory>>;
+  stats: PlayerStats[];
 }
 
-const HeadToHeadStats: React.FC<HeadToHeadStatsProps> = ({ points }) => {
+const HeadToHeadStats: React.FC<HeadToHeadStatsProps> = ({ stats, points }) => {
+  const [sort, setSort] = useState<Sort>({
+    prop: "pointsPerGame",
+    reversed: true,
+  });
+  const [sortedStats, setSortedStats] = useState<PlayerStats[]>(stats);
+
+  useEffect(() => {
+    const sortFunc = getSort(sort);
+    const sortedStats = [...stats];
+
+    sortedStats.sort(sortFunc);
+    setSortedStats(sortedStats);
+  }, [stats, sort]);
+
   const options = {
     responsive: true,
     plugins: {
@@ -69,42 +95,49 @@ const HeadToHeadStats: React.FC<HeadToHeadStatsProps> = ({ points }) => {
     },
   };
 
-  if (points !== null) {
-    if (points.length === 0) {
-      return <p>You have not had any games together yet</p>;
-    }
-
-    const title = `${points[0].name} against ${points[1].name}`;
-
-    if (points.length === 0) {
-      <Page titleBar={<h1 className="text-4xl font-light">{title}</h1>}>
-        <p>You have no games in common</p>
-      </Page>;
-    }
-
-    const labels = [...Array(points[0].history.length).keys()].map(
-      (x) => x + 1
-    );
-
-    const hitRadius = 5;
-    const colours = ["rgb(255, 99, 132)", "rgb(99, 132, 255)"];
-    const data = {
-      labels,
-      datasets: points.map((player, i) => ({
-        label: player.name,
-        data: player.history,
-        borderColor: colours[i],
-        backgroundColor: colours[i].replace(")", ", 0.5)"),
-        pointHitRadius: hitRadius,
-        pointHoverRadius: hitRadius,
-        tension: 0.3,
-      })),
-    };
-
-    return <Line options={options} data={data} />;
-  } else {
-    return <></>;
+  if (points.length === 0) {
+    return <p>You have not had any games together yet</p>;
   }
+
+  const title = `${points[0].name} against ${points[1].name}`;
+
+  if (points.length === 0) {
+    <Page titleBar={<h1 className="text-4xl font-light">{title}</h1>}>
+      <p>You have no games in common</p>
+    </Page>;
+  }
+
+  const labels = [...Array(points[0].history.length).keys()].map((x) => x + 1);
+
+  const hitRadius = 5;
+  const colours = ["rgb(255, 99, 132)", "rgb(99, 132, 255)"];
+  const data = {
+    labels,
+    datasets: points.map((player, i) => ({
+      label: player.name,
+      data: player.history,
+      borderColor: colours[i],
+      backgroundColor: colours[i].replace(")", ", 0.5)"),
+      pointHitRadius: hitRadius,
+      pointHoverRadius: hitRadius,
+      tension: 0.3,
+    })),
+  };
+
+  return (
+    <div className="space-y-2">
+      <Line options={options} data={data} />
+      <HeaderBar onSortChange={setSort} />
+      {sortedStats.map((p, i) => (
+        <PlayerCard
+          stats={p}
+          idx={i}
+          key={p.id.toString()}
+        // badges={badges.get(p.stats.id) ?? noBadges()}
+        />
+      ))}
+    </div>
+  );
 };
 
 const HeadToHead = () => {
@@ -113,28 +146,47 @@ const HeadToHead = () => {
   >;
 
   const [players, setPlayers] = useState<(number | null)[]>([null, null]);
+  const [stats, setStats] = useState<PlayerStats[]>([]);
   const [points, setPoints] = useState<Awaited<
-    ReturnType<typeof getStats>
+    ReturnType<typeof getHistory>
   > | null>(null);
+
+  const [numberGames, setNumberGames] = useState<number | "All">(10);
+  const numberGamesOptions: (number | "All")[] = [1, 5, 10, 25, 50, "All"];
 
   useEffect(() => {
     if (!players.some((p) => p === null)) {
       async function updateStats() {
-        setPoints(
-          await getStats(players[0] as number, players[1] as number, group.id)
+        const history = getHistory(
+          players[0] as number,
+          players[1] as number,
+          group.id,
+          numberGames === "All" ? undefined : numberGames
         );
+        const stats = getHeadToHeadStats(
+          players[0] as number,
+          players[1] as number,
+          group.id,
+          numberGames === "All" ? undefined : numberGames
+        );
+
+        setPoints(await history);
+        setStats(await stats);
       }
 
       updateStats();
     }
-  }, [players]);
+  }, [players, numberGames]);
 
-  // TODO: tidy, remove duplication
   return (
     <Page titleBar={<h1 className="text-4xl font-light">Head to Head</h1>}>
       <div className="sm:px-0 px-4">
-        <p>Players</p>
-        <div className="space-x-4 my-2">
+        <div className="flex">
+          <p>Players</p>
+          <div className="grow" />
+          <p>Number of Games</p>
+        </div>
+        <div className="flex space-x-4 my-2">
           {players.map((p, i) => (
             <Dropdown
               options={allPlayers.map((p) => ({ id: p.id, value: p.name }))}
@@ -153,8 +205,27 @@ const HeadToHead = () => {
               key={i}
             />
           ))}
+          <div className="grow" />
+          <Dropdown
+            name="Number of games"
+            value={numberGames}
+            options={numberGamesOptions.map((x) => ({
+              id: x,
+              value: x.toString(),
+            }))}
+            onChange={(val) => {
+              const asNumber = Number(val);
+              if (!isNaN(asNumber)) {
+                setNumberGames(asNumber);
+              } else if (val === "All") {
+                setNumberGames(val);
+              }
+            }}
+          />
         </div>
-        <HeadToHeadStats points={points} />
+        {points !== null && stats !== null && (
+          <HeadToHeadStats points={points} stats={stats} />
+        )}
       </div>
     </Page>
   );
