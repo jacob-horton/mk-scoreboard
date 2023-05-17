@@ -45,6 +45,7 @@ async fn get_history(pool: &PgPool, id: i32, group_id: i32, n: Option<i64>) -> V
         INNER JOIN game
             ON game_score.game_id = game.id
         WHERE player.id = $1 AND game.group_id = $2
+        ORDER BY date DESC
         LIMIT $3",
         id,
         group_id,
@@ -55,6 +56,7 @@ async fn get_history(pool: &PgPool, id: i32, group_id: i32, n: Option<i64>) -> V
     .unwrap()
     .into_iter()
     .map(|x| x.score)
+    .rev()
     .collect()
 }
 
