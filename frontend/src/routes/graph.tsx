@@ -12,6 +12,8 @@ import {
 import { Line } from "react-chartjs-2";
 import getIP from "../data/ip";
 import Page from "../components/Page";
+import Dropdown from "../components/Dropdown";
+import { useEffect, useState } from "react";
 
 ChartJS.register(
   CategoryScale,
@@ -23,18 +25,17 @@ ChartJS.register(
   Legend
 );
 
-export async function loader({
-  params,
-}: {
-  params: { groupId: string; playerId: string };
-}) {
-  const { groupId, playerId } = params;
+async function getHistory(playerId: number, groupId: number, nGames?: number) {
   const ip = getIP();
-  let url = new URL(`http://${ip}:8080/players/history`);
-  url.searchParams.append("id", playerId);
-  url.searchParams.append("groupId", groupId);
+  const url = new URL(`http://${ip}:8080/players/history`);
+  url.searchParams.append("id", playerId.toString());
+  url.searchParams.append("groupId", groupId.toString());
 
-  const points = await fetch(url).then(async (response) => {
+  if (nGames !== undefined) {
+    url.searchParams.append("n", nGames.toString());
+  }
+
+  return await fetch(url).then(async (response) => {
     if (!response.ok) {
       console.log("nope");
       throw new Error(response.statusText);
@@ -42,11 +43,14 @@ export async function loader({
 
     return response.json().then((data) => data as number[]);
   });
+}
 
-  url = new URL(`http://${ip}:8080/players/name`);
-  url.searchParams.append("id", playerId);
+async function getName(playerId: number) {
+  const ip = getIP();
+  const url = new URL(`http://${ip}:8080/players/name`);
+  url.searchParams.append("id", playerId.toString());
 
-  const name = await fetch(url).then(async (response) => {
+  return await fetch(url).then(async (response) => {
     if (!response.ok) {
       console.log("nope");
       throw new Error(response.statusText);
@@ -54,14 +58,41 @@ export async function loader({
 
     return response.json().then((data) => data as string);
   });
+}
 
-  return { name, points };
+export async function loader({
+  params,
+}: {
+  params: { groupId: string; playerId: string };
+}) {
+  const { groupId, playerId } = params;
+
+  const playerIdNum = parseInt(playerId);
+  const groupIdNum = parseInt(groupId);
+  const name = await getName(playerIdNum);
+  return { groupId: groupIdNum, playerId: playerIdNum, name };
 }
 
 const Graph = () => {
-  const { name, points } = useLoaderData() as Awaited<
+  const { name, groupId, playerId } = useLoaderData() as Awaited<
     ReturnType<typeof loader>
   >;
+
+  const [numberGames, setNumberGames] = useState<number | "All">(10);
+  const numberGamesOptions: (number | "All")[] = [1, 5, 10, 25, 50, "All"];
+
+  const [points, setPoints] = useState<number[]>([]);
+  useEffect(() => {
+    async function loadHistory() {
+      const points = await getHistory(
+        playerId,
+        groupId,
+        numberGames === "All" ? undefined : numberGames
+      );
+      setPoints(points);
+    }
+    loadHistory();
+  }, [playerId, numberGames]);
 
   const options = {
     responsive: true,
@@ -101,7 +132,33 @@ const Graph = () => {
   };
 
   return (
-    <Page titleBar={<h1 className="text-4xl font-light">Points for {name}</h1>}>
+    <Page
+      titleBar={
+        <div className="flex grow items-center">
+          <h1 className="text-4xl font-light">Points for {name}</h1>
+          <div className="grow" />
+          <div className="flex flex-col items-end">
+            <p>Number of Games</p>
+            <Dropdown
+              name="Number of games"
+              value={numberGames}
+              options={numberGamesOptions.map((x) => ({
+                id: x,
+                value: x.toString(),
+              }))}
+              onChange={(val) => {
+                const asNumber = Number(val);
+                if (!isNaN(asNumber)) {
+                  setNumberGames(asNumber);
+                } else if (val === "All") {
+                  setNumberGames(val);
+                }
+              }}
+            />
+          </div>
+        </div>
+      }
+    >
       <Line options={options} data={data} />
     </Page>
   );
