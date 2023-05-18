@@ -191,26 +191,29 @@ const HeadToHead = () => {
           <div className="grow" />
           <p>Number of Games</p>
         </div>
-        <div className="flex space-x-4 my-2">
-          {players.map((p, i) => (
-            <Dropdown
-              options={allPlayers.map((p) => ({ id: p.id, value: p.name }))}
-              disableDefault={false}
-              disabled={players
-                .filter((p) => p !== null)
-                .map((p) => p as number)}
-              value={p ?? undefined}
-              name={i.toString()}
-              onChange={(id) => {
-                setPlayers((prev) => {
-                  let newPlayers = [...prev];
-                  newPlayers[i] = id.length === 0 ? null : parseInt(id);
-                  return newPlayers;
-                });
-              }}
-              key={i}
-            />
-          ))}
+        <div className="flex space-x-4 my-2 items-start">
+          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 space-x-0 md:space-x-4">
+            {players.map((p, i) => (
+              <Dropdown
+                className=""
+                options={allPlayers.map((p) => ({ id: p.id, value: p.name }))}
+                disableDefault={false}
+                disabled={players
+                  .filter((p) => p !== null)
+                  .map((p) => p as number)}
+                value={p ?? undefined}
+                name={i.toString()}
+                onChange={(id) => {
+                  setPlayers((prev) => {
+                    let newPlayers = [...prev];
+                    newPlayers[i] = id.length === 0 ? null : parseInt(id);
+                    return newPlayers;
+                  });
+                }}
+                key={i}
+              />
+            ))}
+          </div>
           <div className="grow" />
           <Dropdown
             name="Number of games"

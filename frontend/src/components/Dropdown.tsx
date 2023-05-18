@@ -6,6 +6,7 @@ interface DropdownProps {
   name: string;
   value?: number | string;
   disableDefault?: boolean;
+  className?: string;
 
   onChange: (id: string) => void;
 }
@@ -16,13 +17,14 @@ const Dropdown: React.FC<DropdownProps> = ({
   disableDefault,
   name,
   value,
+  className,
   onChange,
 }) => {
   return (
     <select
       name={name}
       value={value}
-      className="py-2 px-3 rounded-lg"
+      className={`py-2 px-3 rounded-lg ${className}`}
       defaultValue={value === undefined ? "" : undefined}
       onChange={(e) => onChange(e.target.value)}
     >

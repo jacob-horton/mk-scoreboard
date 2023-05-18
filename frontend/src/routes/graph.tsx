@@ -133,7 +133,7 @@ const Graph = () => {
 
   return (
     <Page titleBar={<h1 className="text-4xl font-light">Points for {name}</h1>}>
-      <div className="space-y-2">
+      <div className="space-y-2 px-2">
         <div>
           <p>Number of Games</p>
           <Dropdown
