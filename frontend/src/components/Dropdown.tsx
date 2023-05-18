@@ -5,6 +5,7 @@ interface DropdownProps {
   disabled?: (number | string)[];
   name: string;
   value?: number | string;
+  disableDefault?: boolean;
 
   onChange: (id: string) => void;
 }
@@ -12,6 +13,7 @@ interface DropdownProps {
 const Dropdown: React.FC<DropdownProps> = ({
   options,
   disabled,
+  disableDefault,
   name,
   value,
   onChange,
@@ -24,11 +26,9 @@ const Dropdown: React.FC<DropdownProps> = ({
       defaultValue={value === undefined ? "" : undefined}
       onChange={(e) => onChange(e.target.value)}
     >
-      {value === undefined && (
-        <option value="" disabled={true}>
-          Select
-        </option>
-      )}
+      <option value="" disabled={disableDefault ?? true}>
+        Select
+      </option>
       {options.map((x) => {
         return (
           <option key={x.id} value={x.id} disabled={disabled?.includes(x.id)}>

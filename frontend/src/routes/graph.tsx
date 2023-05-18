@@ -132,34 +132,29 @@ const Graph = () => {
   };
 
   return (
-    <Page
-      titleBar={
-        <div className="flex grow items-center">
-          <h1 className="text-4xl font-light">Points for {name}</h1>
-          <div className="grow" />
-          <div className="flex flex-col items-end">
-            <p>Number of Games</p>
-            <Dropdown
-              name="Number of games"
-              value={numberGames}
-              options={numberGamesOptions.map((x) => ({
-                id: x,
-                value: x.toString(),
-              }))}
-              onChange={(val) => {
-                const asNumber = Number(val);
-                if (!isNaN(asNumber)) {
-                  setNumberGames(asNumber);
-                } else if (val === "All") {
-                  setNumberGames(val);
-                }
-              }}
-            />
-          </div>
+    <Page titleBar={<h1 className="text-4xl font-light">Points for {name}</h1>}>
+      <div className="space-y-2">
+        <div>
+          <p>Number of Games</p>
+          <Dropdown
+            name="Number of games"
+            value={numberGames}
+            options={numberGamesOptions.map((x) => ({
+              id: x,
+              value: x.toString(),
+            }))}
+            onChange={(val) => {
+              const asNumber = Number(val);
+              if (!isNaN(asNumber)) {
+                setNumberGames(asNumber);
+              } else if (val === "All") {
+                setNumberGames(val);
+              }
+            }}
+          />
         </div>
-      }
-    >
-      <Line options={options} data={data} />
+        <Line options={options} data={data} />
+      </div>
     </Page>
   );
 };

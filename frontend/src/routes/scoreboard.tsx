@@ -66,7 +66,7 @@ const Scoreboard = () => {
 
   const [badges, setBadges] = useState<Map<number, Badges>>(new Map());
 
-  const [sortProp, setSort] = useState<Sort>({
+  const [sort, setSort] = useState<Sort>({
     prop: "pointsPerGame",
     reversed: true,
   });
@@ -98,12 +98,12 @@ const Scoreboard = () => {
   }, [groupId, numberGames]);
 
   useEffect(() => {
-    const sort = getSort(sortProp);
+    const sortFunc = getSort(sort);
     const stats = [...playerStats];
     const prevStats = [...prevPlayerStats];
 
-    stats.sort(sort);
-    prevStats.sort(sort);
+    stats.sort(sortFunc);
+    prevStats.sort(sortFunc);
 
     const comparisonStats = stats.map((s, place) => {
       const prev = prevStats.find((p) => p.id === s.id);
@@ -124,7 +124,7 @@ const Scoreboard = () => {
     });
 
     setDetailedPlayerStats(comparisonStats);
-  }, [playerStats, prevPlayerStats, sortProp]);
+  }, [playerStats, prevPlayerStats, sort]);
 
   return (
     <Page

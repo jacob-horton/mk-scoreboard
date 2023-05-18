@@ -187,8 +187,7 @@ pub async fn player_name(data: Data<AppState>, info: Query<PlayerIdData>) -> imp
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct HeadToHeadData {
-    id1: i32,
-    id2: i32,
+    ids: String,
     group_id: i32,
     n: Option<i32>,
 }
@@ -206,17 +205,22 @@ pub async fn head_to_head_history(
     data: Data<AppState>,
     info: Query<HeadToHeadData>,
 ) -> impl Responder {
+    let ids: Vec<i32> = match parse_ids(&info.ids) {
+        Ok(ids) => ids,
+        Err(_) => return HttpResponse::BadRequest().body("Could not parse ids"),
+    };
+
     // TODO: use LIMIT for `n`?
     let common_games = sqlx::query!(
         "SELECT game_id
         FROM game_score
         INNER JOIN game ON game.id = game_score.game_id
-        WHERE player_id IN ($1, $2) AND game.group_id = $3
+        WHERE player_id = ANY($1) AND game.group_id = $2
         GROUP BY game_id
-        HAVING COUNT(DISTINCT player_id) = 2",
-        info.id1,
-        info.id2,
-        info.group_id
+        HAVING COUNT(DISTINCT player_id) = $3",
+        &ids,
+        info.group_id,
+        ids.len() as i64,
     )
     .fetch_all(data.pg_pool.as_ref())
     .await
@@ -235,10 +239,9 @@ pub async fn head_to_head_history(
 	        ON player.id = game_score.player_id
         INNER JOIN game
             ON game.id = game_score.game_id
-        WHERE player.id IN ($1, $2) AND game_id = ANY($3)
+        WHERE player.id = ANY($1) AND game_id = ANY($2)
         ORDER BY date DESC",
-        info.id1,
-        info.id2,
+        &ids,
         &common_games
     )
     .fetch_all(data.pg_pool.as_ref())
@@ -278,16 +281,21 @@ pub async fn head_to_head_history(
 
 #[get("/players/head_to_head")]
 pub async fn head_to_head(data: Data<AppState>, info: Query<HeadToHeadData>) -> impl Responder {
+    let ids: Vec<i32> = match parse_ids(&info.ids) {
+        Ok(ids) => ids,
+        Err(_) => return HttpResponse::BadRequest().body("Could not parse ids"),
+    };
+
     let common_games = sqlx::query!(
         "SELECT game_id
         FROM game_score
         INNER JOIN game ON game.id = game_score.game_id
-        WHERE player_id IN ($1, $2) AND game.group_id = $3
+        WHERE player_id = ANY($1) AND game.group_id = $2
         GROUP BY game_id
-        HAVING COUNT(DISTINCT player_id) = 2",
-        info.id1,
-        info.id2,
-        info.group_id
+        HAVING COUNT(DISTINCT player_id) = $3",
+        &ids,
+        info.group_id,
+        ids.len() as i64,
     )
     .fetch_all(data.pg_pool.as_ref())
     .await
@@ -307,10 +315,9 @@ pub async fn head_to_head(data: Data<AppState>, info: Query<HeadToHeadData>) -> 
 	        ON player.id = game_score.player_id
         INNER JOIN game
             ON game.id = game_score.game_id
-        WHERE player.id IN ($1, $2) AND game_id = ANY($3)
+        WHERE player.id = ANY($1) AND game_id = ANY($2)
         ORDER BY date DESC",
-        info.id1,
-        info.id2,
+        &ids,
         &common_games
     )
     .fetch_all(data.pg_pool.as_ref())
