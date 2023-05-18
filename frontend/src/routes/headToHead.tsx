@@ -18,6 +18,7 @@ import Dropdown from "../components/Dropdown";
 import { PlayerStats, getHeadToHeadStats } from "../data/playerStats";
 import { PlayerCard } from "../components/PlayerCard";
 import HeaderBar, { Sort, getSort } from "../components/HeaderBar";
+import store from "store2";
 
 ChartJS.register(
   CategoryScale,
@@ -118,6 +119,7 @@ const HeadToHeadStats: React.FC<HeadToHeadStatsProps> = ({ stats, points }) => {
     "rgb(59, 255, 181)",
     "rgb(255, 194, 59)",
   ];
+
   const data = {
     labels,
     datasets: points.map((player, i) => ({
@@ -127,7 +129,7 @@ const HeadToHeadStats: React.FC<HeadToHeadStatsProps> = ({ stats, points }) => {
       backgroundColor: colours[i].replace(")", ", 0.5)"),
       pointHitRadius: hitRadius,
       pointHoverRadius: hitRadius,
-      tension: 0.3,
+      tension: store.get("graphTension") ?? 0.3,
     })),
   };
 

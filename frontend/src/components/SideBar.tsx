@@ -1,6 +1,7 @@
 import React from "react";
 import { Group } from "../data/types";
 import SideBarButton from "./SideBarButton";
+import store from "store2";
 
 const Title: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const buttonClasses = "w-8 h-8 rounded-lg transition";
@@ -10,6 +11,10 @@ const Title: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       <div className="space-x-2">
         <button
           className={`bg-blue-500 hover:bg-blue-400 text-white ${buttonClasses}`}
+          onClick={() => {
+            const val = store.get("graphTension");
+            store.set("graphTension", val === 0 ? 0.3 : 0);
+          }}
         >
           +
         </button>

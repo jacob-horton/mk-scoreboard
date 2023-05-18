@@ -14,6 +14,7 @@ import getIP from "../data/ip";
 import Page from "../components/Page";
 import Dropdown from "../components/Dropdown";
 import { useEffect, useState } from "react";
+import store from "store2";
 
 ChartJS.register(
   CategoryScale,
@@ -118,7 +119,7 @@ const Graph = () => {
         backgroundColor: "rgba(255, 99, 132, 0.5)",
         pointHitRadius: hitRadius,
         pointHoverRadius: hitRadius,
-        tension: 0.3,
+        tension: store.get("graphTension") ?? 0.3,
       },
       {
         label: "Average",
