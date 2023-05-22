@@ -12,10 +12,9 @@ import {
 import { Line } from "react-chartjs-2";
 import getIP from "../data/ip";
 import Page from "../components/Page";
-import Dropdown from "../components/Dropdown";
 import { useEffect, useState } from "react";
 import store from "store2";
-import NumberGamesSelector from "../components/NumberGames";
+import NumberGamesSelector, { NumberGames } from "../components/NumberGames";
 
 ChartJS.register(
   CategoryScale,
@@ -80,8 +79,7 @@ const Graph = () => {
     ReturnType<typeof loader>
   >;
 
-  const [numberGames, setNumberGames] = useState<number | "All">(10);
-  const numberGamesOptions: (number | "All")[] = [1, 5, 10, 25, 50, "All"];
+  const [numberGames, setNumberGames] = useState<NumberGames>(10);
 
   const [points, setPoints] = useState<number[]>([]);
   useEffect(() => {
