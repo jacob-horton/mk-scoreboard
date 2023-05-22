@@ -15,6 +15,7 @@ import Page from "../components/Page";
 import Dropdown from "../components/Dropdown";
 import { useEffect, useState } from "react";
 import store from "store2";
+import NumberGamesSelector from "../components/NumberGames";
 
 ChartJS.register(
   CategoryScale,
@@ -135,25 +136,10 @@ const Graph = () => {
   return (
     <Page titleBar={<h1 className="text-4xl font-light">Points for {name}</h1>}>
       <div className="space-y-2 px-2">
-        <div>
-          <p>Number of Games</p>
-          <Dropdown
-            name="Number of games"
-            value={numberGames}
-            options={numberGamesOptions.map((x) => ({
-              id: x,
-              value: x.toString(),
-            }))}
-            onChange={(val) => {
-              const asNumber = Number(val);
-              if (!isNaN(asNumber)) {
-                setNumberGames(asNumber);
-              } else if (val === "All") {
-                setNumberGames(val);
-              }
-            }}
-          />
-        </div>
+        <NumberGamesSelector
+          onGamesChange={setNumberGames}
+          align="items-start"
+        />
         <Line options={options} data={data} />
       </div>
     </Page>

@@ -9,8 +9,8 @@ import { Link, useLoaderData } from "react-router-dom";
 import getIP from "../data/ip";
 import { Badges, Group, noBadges } from "../data/types";
 import Page from "../components/Page";
-import Dropdown from "../components/Dropdown";
 import HeaderBar, { Sort, getSort } from "../components/HeaderBar";
+import NumberGamesSelector, { NumberGames } from "../components/NumberGames";
 
 export async function loader({ params }: { params: { groupId: string } }) {
   const ip = getIP();
@@ -61,9 +61,7 @@ const Scoreboard = () => {
     ReturnType<typeof loader>
   >;
 
-  const [numberGames, setNumberGames] = useState<number | "All">(10);
-  const numberGamesOptions: (number | "All")[] = [1, 5, 10, 25, 50, "All"];
-
+  const [numberGames, setNumberGames] = useState<NumberGames>(10);
   const [badges, setBadges] = useState<Map<number, Badges>>(new Map());
 
   const [sort, setSort] = useState<Sort>({
@@ -131,25 +129,10 @@ const Scoreboard = () => {
       titleBar={
         <div className="flex justify-between w-full items-center">
           <h1 className="text-4xl font-light">{groupName}</h1>
-          <div className="flex flex-col items-end pr-2">
-            <p className="text-gray-800">Number of Games</p>
-            <Dropdown
-              name="Number of games"
-              value={numberGames}
-              options={numberGamesOptions.map((x) => ({
-                id: x,
-                value: x.toString(),
-              }))}
-              onChange={(val) => {
-                const asNumber = Number(val);
-                if (!isNaN(asNumber)) {
-                  setNumberGames(asNumber);
-                } else if (val === "All") {
-                  setNumberGames(val);
-                }
-              }}
-            />
-          </div>
+          <NumberGamesSelector
+            onGamesChange={setNumberGames}
+            align="items-end"
+          />
         </div>
       }
     >

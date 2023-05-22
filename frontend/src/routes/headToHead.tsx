@@ -19,6 +19,7 @@ import { PlayerStats, getHeadToHeadStats } from "../data/playerStats";
 import { PlayerCard } from "../components/PlayerCard";
 import HeaderBar, { Sort, getSort } from "../components/HeaderBar";
 import store from "store2";
+import NumberGamesSelector, { NumberGames } from "../components/NumberGames";
 
 ChartJS.register(
   CategoryScale,
@@ -102,14 +103,6 @@ const HeadToHeadStats: React.FC<HeadToHeadStatsProps> = ({ stats, points }) => {
     return <p>You have not had any games together yet</p>;
   }
 
-  const title = "oof"; //`${points[0].name} against ${points[1].name}`;
-
-  if (points.length === 0) {
-    <Page titleBar={<h1 className="text-4xl font-light">{title}</h1>}>
-      <p>You have no games in common</p>
-    </Page>;
-  }
-
   const labels = [...Array(points[0].history.length).keys()].map((x) => x + 1);
 
   const hitRadius = 5;
@@ -138,12 +131,7 @@ const HeadToHeadStats: React.FC<HeadToHeadStatsProps> = ({ stats, points }) => {
       <Line options={options} data={data} />
       <HeaderBar onSortChange={setSort} />
       {sortedStats.map((p, i) => (
-        <PlayerCard
-          stats={p}
-          idx={i}
-          key={p.id.toString()}
-        // badges={badges.get(p.stats.id) ?? noBadges()}
-        />
+        <PlayerCard stats={p} idx={i} key={p.id.toString()} />
       ))}
     </div>
   );
@@ -162,8 +150,7 @@ const HeadToHead = () => {
     []
   );
 
-  const [numberGames, setNumberGames] = useState<number | "All">(10);
-  const numberGamesOptions: (number | "All")[] = [1, 5, 10, 25, 50, "All"];
+  const [numberGames, setNumberGames] = useState<NumberGames>(10);
 
   useEffect(() => {
     async function updateStats() {
@@ -188,50 +175,36 @@ const HeadToHead = () => {
   return (
     <Page titleBar={<h1 className="text-4xl font-light">Head to Head</h1>}>
       <div className="sm:px-0 px-4 overflow-scroll">
-        <div className="flex">
-          <p>Players</p>
-          <div className="grow" />
-          <p>Number of Games</p>
-        </div>
         <div className="flex space-x-4 my-2 items-start">
-          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 space-x-0 md:space-x-4">
-            {players.map((p, i) => (
-              <Dropdown
-                className=""
-                options={allPlayers.map((p) => ({ id: p.id, value: p.name }))}
-                disableDefault={false}
-                disabled={players
-                  .filter((p) => p !== null)
-                  .map((p) => p as number)}
-                value={p ?? undefined}
-                name={i.toString()}
-                onChange={(id) => {
-                  setPlayers((prev) => {
-                    let newPlayers = [...prev];
-                    newPlayers[i] = id.length === 0 ? null : parseInt(id);
-                    return newPlayers;
-                  });
-                }}
-                key={i}
-              />
-            ))}
+          <div>
+            <p>Players</p>
+            <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 space-x-0 md:space-x-4">
+              {players.map((p, i) => (
+                <Dropdown
+                  className=""
+                  options={allPlayers.map((p) => ({ id: p.id, value: p.name }))}
+                  disableDefault={false}
+                  disabled={players
+                    .filter((p) => p !== null)
+                    .map((p) => p as number)}
+                  value={p ?? undefined}
+                  name={i.toString()}
+                  onChange={(id) => {
+                    setPlayers((prev) => {
+                      let newPlayers = [...prev];
+                      newPlayers[i] = id.length === 0 ? null : parseInt(id);
+                      return newPlayers;
+                    });
+                  }}
+                  key={i}
+                />
+              ))}
+            </div>
           </div>
           <div className="grow" />
-          <Dropdown
-            name="Number of games"
-            value={numberGames}
-            options={numberGamesOptions.map((x) => ({
-              id: x,
-              value: x.toString(),
-            }))}
-            onChange={(val) => {
-              const asNumber = Number(val);
-              if (!isNaN(asNumber)) {
-                setNumberGames(asNumber);
-              } else if (val === "All") {
-                setNumberGames(val);
-              }
-            }}
+          <NumberGamesSelector
+            onGamesChange={setNumberGames}
+            align="items-end"
           />
         </div>
         <HeadToHeadStats points={points} stats={stats} />
