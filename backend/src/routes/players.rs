@@ -10,7 +10,10 @@ use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use urlencoding::decode;
 
-use crate::{utils::modify_birthday, AppState};
+use crate::{
+    utils::{is_birthday, modify_birthday},
+    AppState,
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -234,7 +237,8 @@ pub async fn head_to_head_history(
         "SELECT      
             game_score.player_id as player_id,
             player.name as player_name,
-            game_score.score as points
+            game_score.score as points,
+            player.birthday as player_birthday
         FROM game_score
         INNER JOIN player
 	        ON player.id = game_score.player_id
@@ -266,7 +270,14 @@ pub async fn head_to_head_history(
             }
         }
 
-        player.history.push(game.points);
+        player.history.push(
+            game.points
+                * if is_birthday(&game.player_birthday) {
+                    1
+                } else {
+                    10
+                },
+        );
     }
 
     let mut response = players
@@ -362,7 +373,12 @@ pub async fn head_to_head(data: Data<AppState>, info: Query<HeadToHeadData>) -> 
         }
 
         player.games += 1;
-        player.points += player_game.points;
+        player.points += player_game.points
+            * if is_birthday(&player_game.birthday) {
+                1
+            } else {
+                10
+            };
     }
 
     HttpResponse::Ok().json(players.values().collect_vec())

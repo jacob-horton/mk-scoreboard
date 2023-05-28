@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     routes::players::{Player, PlayerStats},
-    utils::modify_birthday,
+    utils::{is_birthday, modify_birthday},
     AppState,
 };
 
@@ -145,7 +145,12 @@ pub async fn get_group_stats(
         }
 
         player.games += 1;
-        player.points += player_game.points;
+        player.points += player_game.points
+            * if is_birthday(&player_game.birthday) {
+                10
+            } else {
+                1
+            };
     }
 
     HttpResponse::Ok().json(players.values().collect_vec())
