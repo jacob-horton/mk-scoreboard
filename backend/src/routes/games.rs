@@ -1,3 +1,5 @@
+use std::collections::{HashMap, HashSet};
+
 use actix_web::{
     get,
     http::Error,
@@ -5,9 +7,10 @@ use actix_web::{
     web::{self, Data, Query},
     HttpResponse, Responder,
 };
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use crate::AppState;
+use crate::{utils::is_birthday, AppState};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -34,6 +37,21 @@ pub async fn add_game(
         .await
         .unwrap();
 
+    let birthdays = sqlx::query!(
+        "SELECT id, birthday FROM player WHERE id = ANY($1)",
+        &payload.scores.iter().map(|x| x.player_id).collect_vec()
+    )
+    .fetch_all(data.pg_pool.as_ref())
+    .await
+    .unwrap();
+
+    let mut tenx_multipliers = HashSet::new();
+    for birthday in birthdays {
+        if is_birthday(&birthday.birthday) {
+            tenx_multipliers.insert(birthday.id);
+        }
+    }
+
     let game_id = sqlx::query!("SELECT currval(pg_get_serial_sequence('game','id')) as id;")
         .fetch_one(&mut transaction)
         .await
@@ -42,9 +60,15 @@ pub async fn add_game(
         .unwrap();
 
     for score in &payload.scores {
+        let multiplier = if tenx_multipliers.contains(&score.player_id) {
+            10
+        } else {
+            1
+        };
+
         sqlx::query!(
             "INSERT INTO game_score (score, game_id, player_id) VALUES ($1, $2, $3)",
-            score.score,
+            score.score * multiplier,
             game_id as i32,
             score.player_id,
         )
