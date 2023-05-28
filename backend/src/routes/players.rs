@@ -273,9 +273,9 @@ pub async fn head_to_head_history(
         player.history.push(
             game.points
                 * if is_birthday(&game.player_birthday) {
-                    1
-                } else {
                     10
+                } else {
+                    1
                 },
         );
     }
@@ -375,9 +375,9 @@ pub async fn head_to_head(data: Data<AppState>, info: Query<HeadToHeadData>) -> 
         player.games += 1;
         player.points += player_game.points
             * if is_birthday(&player_game.birthday) {
-                1
-            } else {
                 10
+            } else {
+                1
             };
     }
 
