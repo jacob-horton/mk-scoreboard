@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     routes::players::{Player, PlayerStats},
+    utils::modify_birthday,
     AppState,
 };
 
@@ -77,6 +78,7 @@ pub async fn get_group_stats(
             game_score.player_id as player_id,
             game_score.game_id as game_id, 
             player.name as player_name,
+            player.birthday as birthday,
             game_score.score as points
         FROM player
         INNER JOIN game_score ON game_score.player_id = player.id
@@ -125,7 +127,7 @@ pub async fn get_group_stats(
 
         let mut player = players.entry(player_game.player_id).or_insert(PlayerStats {
             id: player_game.player_id,
-            name: player_game.player_name,
+            name: modify_birthday(&player_game.player_name, &player_game.birthday),
             points: 0,
             wins: 0,
             games: 0,
@@ -152,7 +154,7 @@ pub async fn get_group_stats(
 #[get("/groups/list_players")]
 pub async fn list_players(data: Data<AppState>, info: Query<GroupIdData>) -> impl Responder {
     let players = sqlx::query!(
-        "SELECT player.id as id, name
+        "SELECT player.id as id, name, birthday
         FROM player
         INNER JOIN player_group
             ON player.id = player_group.player_id
@@ -180,7 +182,7 @@ pub async fn list_players(data: Data<AppState>, info: Query<GroupIdData>) -> imp
         players
             .into_iter()
             .map(|p| Player {
-                name: p.name,
+                name: modify_birthday(&p.name, &p.birthday),
                 id: p.id,
             })
             .collect::<Vec<_>>(),

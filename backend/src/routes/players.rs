@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use urlencoding::decode;
 
-use crate::AppState;
+use crate::{utils::modify_birthday, AppState};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -140,7 +140,7 @@ async fn get_badges(
 fn parse_ids(ids: &str) -> Result<Vec<i32>, ()> {
     decode(ids)
         .map_err(|_| ())?
-        .split(",")
+        .split(',')
         .filter(|x| !x.trim().is_empty())
         .map(|x| x.parse())
         .collect::<Result<Vec<_>, _>>()
@@ -172,7 +172,7 @@ pub struct PlayerIdData {
 #[get("/players/name")]
 pub async fn player_name(data: Data<AppState>, info: Query<PlayerIdData>) -> impl Responder {
     let player = sqlx::query!(
-        "SELECT name
+        "SELECT name, birthday
         FROM player
         WHERE player.id = $1",
         info.id,
@@ -181,7 +181,8 @@ pub async fn player_name(data: Data<AppState>, info: Query<PlayerIdData>) -> imp
     .await
     .unwrap();
 
-    HttpResponse::Ok().json(player.name)
+    let name = modify_birthday(&player.name, &player.birthday);
+    HttpResponse::Ok().json(name)
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -309,6 +310,7 @@ pub async fn head_to_head(data: Data<AppState>, info: Query<HeadToHeadData>) -> 
             game_score.player_id as player_id,
             game_score.game_id as game_id, 
             player.name as player_name,
+            player.birthday as birthday,
             game_score.score as points
         FROM game_score
         INNER JOIN player
@@ -342,7 +344,7 @@ pub async fn head_to_head(data: Data<AppState>, info: Query<HeadToHeadData>) -> 
     for player_game in player_games {
         let mut player = players.entry(player_game.player_id).or_insert(PlayerStats {
             id: player_game.player_id,
-            name: player_game.player_name,
+            name: modify_birthday(&player_game.player_name, &player_game.birthday),
             points: 0,
             wins: 0,
             games: 0,

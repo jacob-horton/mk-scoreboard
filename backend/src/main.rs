@@ -10,6 +10,7 @@ use routes::players::{
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 mod routes;
+mod utils;
 
 #[derive(Clone, Debug)]
 pub struct AppState {
