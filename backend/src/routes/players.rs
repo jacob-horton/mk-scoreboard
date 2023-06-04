@@ -10,7 +10,10 @@ use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use urlencoding::decode;
 
-use crate::{utils::modify_birthday, AppState};
+use crate::{
+    utils::{modify_birthday, std_dev},
+    AppState,
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -20,6 +23,7 @@ pub struct PlayerStats {
     pub wins: i32,
     pub points: i32,
     pub games: i32,
+    pub std_dev: f32,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -349,6 +353,7 @@ pub async fn head_to_head(data: Data<AppState>, info: Query<HeadToHeadData>) -> 
             points: 0,
             wins: 0,
             games: 0,
+            std_dev: 0.0,
         });
 
         // Skip if already got the n games
@@ -364,7 +369,16 @@ pub async fn head_to_head(data: Data<AppState>, info: Query<HeadToHeadData>) -> 
 
         player.games += 1;
         player.points += player_game.points;
+        player.std_dev += player_game.points.pow(2) as f32; // Sum squared
     }
 
-    HttpResponse::Ok().json(players.values().collect_vec())
+    let values = players
+        .into_values()
+        .map(|p| PlayerStats {
+            std_dev: std_dev(p.points as f32, p.std_dev as f32, p.games),
+            ..p
+        })
+        .collect_vec();
+
+    HttpResponse::Ok().json(values)
 }

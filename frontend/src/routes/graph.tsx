@@ -15,6 +15,7 @@ import Page from "../components/Page";
 import { useEffect, useState } from "react";
 import store from "store2";
 import NumberGamesSelector, { NumberGames } from "../components/NumberGames";
+import { stdDev } from "../data/stats";
 
 ChartJS.register(
   CategoryScale,
@@ -134,8 +135,17 @@ const Graph = () => {
   return (
     <Page titleBar={<h1 className="text-4xl font-light">Points for {name}</h1>}>
       <div className="space-y-2 px-2">
-        <NumberGamesSelector onGamesChange={setNumberGames} align="items-end" />
+        <NumberGamesSelector
+          onGamesChange={setNumberGames}
+          align="items-start"
+        />
         <Line options={options} data={data} />
+        {points && points.length && (
+          <div className="flex flex-row space-x-2 text-gray-600 text-lg">
+            <p>Std dev:</p>
+            <p>{stdDev(points).toFixed(2)}</p>
+          </div>
+        )}
       </div>
     </Page>
   );

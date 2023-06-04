@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     routes::players::{Player, PlayerStats},
-    utils::modify_birthday,
+    utils::{modify_birthday, std_dev},
     AppState,
 };
 
@@ -131,6 +131,7 @@ pub async fn get_group_stats(
             points: 0,
             wins: 0,
             games: 0,
+            std_dev: 0.0,
         });
 
         // Skip if already got the n games
@@ -146,9 +147,18 @@ pub async fn get_group_stats(
 
         player.games += 1;
         player.points += player_game.points;
+        player.std_dev += player_game.points.pow(2) as f32; // Sum squared
     }
 
-    HttpResponse::Ok().json(players.values().collect_vec())
+    let values = players
+        .into_values()
+        .map(|p| PlayerStats {
+            std_dev: std_dev(p.points as f32, p.std_dev as f32, p.games),
+            ..p
+        })
+        .collect_vec();
+
+    HttpResponse::Ok().json(values)
 }
 
 #[get("/groups/list_players")]
