@@ -129,10 +129,12 @@ const Scoreboard = () => {
       titleBar={
         <div className="flex justify-between w-full items-center">
           <h1 className="text-4xl font-light">{groupName}</h1>
-          <NumberGamesSelector
-            onGamesChange={setNumberGames}
-            align="items-end"
-          />
+          <div className="px-4">
+            <NumberGamesSelector
+              onGamesChange={setNumberGames}
+              align="items-end"
+            />
+          </div>
         </div>
       }
     >

@@ -134,10 +134,7 @@ const Graph = () => {
   return (
     <Page titleBar={<h1 className="text-4xl font-light">Points for {name}</h1>}>
       <div className="space-y-2 px-2">
-        <NumberGamesSelector
-          onGamesChange={setNumberGames}
-          align="items-start"
-        />
+        <NumberGamesSelector onGamesChange={setNumberGames} align="items-end" />
         <Line options={options} data={data} />
       </div>
     </Page>

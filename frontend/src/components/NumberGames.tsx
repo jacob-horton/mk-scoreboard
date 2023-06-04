@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Dropdown from "./Dropdown";
+import store from "store2";
 
 export type NumberGames = number | "All";
 
@@ -15,6 +16,24 @@ const NumberGamesSelector: React.FC<NumberGamesProps> = ({
   const [numberGames, setNumberGames] = useState<NumberGames>(10);
   const numberGamesOptions: NumberGames[] = [1, 5, 10, 25, 50, "All"];
 
+  useEffect(() => {
+    async function loadNumberGames() {
+      const loaded = store.session.get("numberGames");
+      if (loaded != null) {
+        const asNumber = Number(loaded);
+        if (!isNaN(asNumber)) {
+          setNumberGames(asNumber);
+          onGamesChange(asNumber);
+        } else if (loaded === "All") {
+          setNumberGames(loaded);
+          onGamesChange(loaded);
+        }
+      }
+    }
+
+    loadNumberGames();
+  }, []);
+
   return (
     <div className={`flex flex-col ${align}`}>
       <p className="text-gray-800">Number of Games</p>
@@ -28,9 +47,11 @@ const NumberGamesSelector: React.FC<NumberGamesProps> = ({
         onChange={(val) => {
           const asNumber = Number(val);
           if (!isNaN(asNumber)) {
+            store.session.set("numberGames", asNumber);
             setNumberGames(asNumber);
             onGamesChange(asNumber);
           } else if (val === "All") {
+            store.session.set("numberGames", val);
             setNumberGames(val);
             onGamesChange(val);
           }
