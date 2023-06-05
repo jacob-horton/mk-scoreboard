@@ -1,0 +1,14 @@
+services:
+  backend:
+    image: mk_backend
+    build: ./backend
+    env_file: ./.env.prod
+    ports:
+      - 8080:8080
+
+  frontend:
+    image: mk_frontend
+    build: ./frontend
+    env_file: ./.env.prod
+    ports:
+      - 80:8081
