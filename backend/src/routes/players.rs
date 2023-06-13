@@ -37,7 +37,7 @@ pub struct Player {
 pub struct HistoryData {
     id: i32,
     group_id: i32,
-    n: Option<i64>,
+    n: Option<usize>,
 }
 
 async fn get_history(pool: &PgPool, id: i32, group_id: i32, n: Option<i64>) -> Vec<i32> {
@@ -66,7 +66,80 @@ async fn get_history(pool: &PgPool, id: i32, group_id: i32, n: Option<i64>) -> V
 
 #[get("/players/history")]
 pub async fn player_history(data: Data<AppState>, info: Query<HistoryData>) -> impl Responder {
-    HttpResponse::Ok().json(get_history(&data.pg_pool, info.id, info.group_id, info.n).await)
+    HttpResponse::Ok().json(
+        get_history(
+            &data.pg_pool,
+            info.id,
+            info.group_id,
+            info.n.map(|n| n as i64),
+        )
+        .await,
+    )
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct StreakResponse {
+    scores: Vec<i32>,
+    avg: f32,
+    std_dev: f32,
+}
+
+#[get("/players/best_streak")]
+pub async fn player_best_streak(data: Data<AppState>, info: Query<HistoryData>) -> impl Responder {
+    let scores = sqlx::query!(
+        "SELECT game_score.score
+        FROM player
+        INNER JOIN game_score
+            ON game_score.player_id = player.id
+        INNER JOIN game
+            ON game_score.game_id = game.id
+        WHERE player.id = $1 AND game.group_id = $2
+        ORDER BY date ASC",
+        info.id,
+        info.group_id,
+    )
+    .fetch_all(data.pg_pool.as_ref())
+    .await
+    .unwrap()
+    .into_iter()
+    .map(|x| x.score)
+    .collect::<Vec<_>>();
+
+    let streak = match info.n {
+        None => scores,
+        Some(n) => {
+            let windows = scores.windows(n as usize);
+            windows
+                .max_by(|w1, w2| w1.iter().sum::<i32>().cmp(&w2.iter().sum::<i32>()))
+                .unwrap()
+                .to_vec()
+        }
+    };
+
+    if streak.len() == 0 {
+        return HttpResponse::Ok().json(StreakResponse {
+            scores: Vec::new(),
+            avg: 0.0,
+            std_dev: 0.0,
+        });
+    }
+
+    let avg = streak.iter().sum::<i32>() as f32 / streak.len() as f32;
+    let std_dev = (streak
+        .iter()
+        .map(|x| (*x as f32 - avg).powi(2))
+        .sum::<f32>() as f32
+        / streak.len() as f32)
+        .sqrt();
+
+    let streak_resp = StreakResponse {
+        scores: streak,
+        avg,
+        std_dev,
+    };
+
+    HttpResponse::Ok().json(streak_resp)
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
