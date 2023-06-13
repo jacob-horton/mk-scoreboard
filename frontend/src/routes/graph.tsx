@@ -186,7 +186,7 @@ const Graph = () => {
 
   return (
     <Page titleBar={<h1 className="text-4xl font-light">Points for {name}</h1>}>
-      <div className="space-y-2 px-2">
+      <div className="space-y-2 px-2 overflow-scroll h-full">
         <div className="flex flex-row justify-between">
           <NumberGamesSelector
             onGamesChange={setNumberGames}
@@ -214,6 +214,7 @@ const Graph = () => {
             <p>{streak.stdDev.toFixed(2)}</p>
           </div>
         )}
+        <div className="h-4" />
       </div>
     </Page>
   );
