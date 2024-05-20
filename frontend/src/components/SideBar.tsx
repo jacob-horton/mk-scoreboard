@@ -65,13 +65,6 @@ const SideBar: React.FC<SideBarProps> = ({
             </li>
           ))}
           <li key="space" className="grow flex h-12" />
-          <li key={"Old Scores"}>
-            <SideBarButton
-              page="/groups/old-scores"
-              name="Old Scores"
-              onClick={onClose}
-            />
-          </li>
           <li key={"Random"}>
             <SideBarButton
               page="/randomiser"

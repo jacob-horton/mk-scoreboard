@@ -45,29 +45,6 @@ export async function loader({ params }: { params: { groupId: string } }) {
   return { group, players };
 }
 
-function questionWinner(playerScores: PlayerScore[], question: number[]) {
-  if (playerScores.some((p) => p.playerId === null)) {
-    return false;
-  }
-
-  let winners: number[] = [];
-  let maxScore = 0;
-
-  for (let playerScore of playerScores) {
-    if (playerScore.score > maxScore) {
-      maxScore = playerScore.score;
-      winners = [playerScore.playerId as number]; // Reset list and put only this player in
-    } else if (playerScore.score == maxScore) {
-      winners.push(playerScore.playerId as number); // Append player to winners - draw
-    }
-  }
-
-  if (question.some((q) => winners.includes(q))) {
-    return true;
-  }
-
-  return false;
-}
 export async function canSubmit(
   playerScores: PlayerScore[],
   maxScore: number | null
@@ -88,11 +65,6 @@ export async function canSubmit(
       alert(`Max possible score is ${maxScore}`);
       return false;
     }
-  }
-
-  // Hehe
-  if (questionWinner(playerScores, [6, 7])) {
-    alert("Are you sure you haven't made a mistake on that one? (hehe)");
   }
 
   return true;

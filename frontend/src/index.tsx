@@ -5,7 +5,6 @@ import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
 import Scoreboard, { loader as groupLoader } from "./routes/scoreboard.tsx";
 import AddGame from "./routes/addGame.tsx";
 import { loader as addGameLoader } from "./routes/functions/addGame.tsx";
-import SimpleScoreboard from "./routes/simpleScoreboard.tsx";
 import Graph, { loader as graphLoader } from "./routes/graph.tsx";
 import Page from "./components/Page.tsx";
 import ItemGenerator from "./routes/itemGenerator.tsx";
@@ -54,10 +53,6 @@ const router = createBrowserRouter([
         path: "groups/:groupId/head_to_head",
         element: <HeadToHead />,
         loader: addGameLoader,
-      },
-      {
-        path: "groups/old-scores",
-        element: <SimpleScoreboard />,
       },
       {
         path: "randomiser",
