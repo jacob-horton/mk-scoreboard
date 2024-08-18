@@ -10,12 +10,12 @@ import {
   Legend,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import getIP from "../data/ip";
 import Page from "../components/Page";
 import { useEffect, useState } from "react";
 import store from "store2";
 import NumberGamesSelector, { NumberGames } from "../components/NumberGames";
 import { stdDev } from "../data/stats";
+import getApiAddr from "../data/ip";
 
 ChartJS.register(
   CategoryScale,
@@ -33,8 +33,8 @@ async function getScores(
   endpoint: "history" | "best_streak",
   nGames?: number
 ) {
-  const ip = getIP();
-  const url = new URL(`http://${ip}:8080/players/${endpoint}`);
+  const apiAddr = getApiAddr();
+  const url = new URL(`http://${apiAddr}/players/${endpoint}`);
   url.searchParams.append("id", playerId.toString());
   url.searchParams.append("groupId", groupId.toString());
 
@@ -53,8 +53,8 @@ async function getScores(
 }
 
 async function getName(playerId: number) {
-  const ip = getIP();
-  const url = new URL(`http://${ip}:8080/players/name`);
+  const apiAddr = getApiAddr();
+  const url = new URL(`http://${apiAddr}/players/name`);
   url.searchParams.append("id", playerId.toString());
 
   return await fetch(url).then(async (response) => {

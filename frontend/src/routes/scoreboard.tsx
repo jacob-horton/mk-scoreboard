@@ -6,15 +6,15 @@ import {
   getPlayerStats,
 } from "../data/playerStats";
 import { Link, useLoaderData } from "react-router-dom";
-import getIP from "../data/ip";
+import getApiAddr from "../data/ip";
 import { Badges, Group, noBadges } from "../data/types";
 import Page from "../components/Page";
 import HeaderBar, { Sort, getSort } from "../components/HeaderBar";
 import NumberGamesSelector, { NumberGames } from "../components/NumberGames";
 
 export async function loader({ params }: { params: { groupId: string } }) {
-  const ip = getIP();
-  const url = new URL(`http://${ip}:8080/groups/get`);
+  const apiAddr = getApiAddr();
+  const url = new URL(`http://${apiAddr}/groups/get`);
   url.searchParams.append("id", params.groupId);
 
   return fetch(url).then(async (response) => {
@@ -32,8 +32,8 @@ async function getBadges(ids: number[], groupId: number) {
     return new Map();
   }
 
-  const ip = getIP();
-  const url = new URL(`http://${ip}:8080/players/badges`);
+  const apiAddr = getApiAddr();
+  const url = new URL(`http://${apiAddr}/players/badges`);
   url.searchParams.append("ids", ids.join(","));
   url.searchParams.append("groupId", groupId.toString());
 

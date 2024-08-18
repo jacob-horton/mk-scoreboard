@@ -1,9 +1,9 @@
 import { useState } from "react";
 import PlayerScoreInput from "../components/PlayerScoreInput";
 import { Form, useLoaderData, useNavigate } from "react-router-dom";
-import getIP from "../data/ip";
 import Page from "../components/Page";
 import { PlayerScore, canSubmit, loader } from "./functions/addGame";
+import getApiAddr from "../data/ip";
 
 const AddGame = () => {
   const { group, players } = useLoaderData() as Awaited<
@@ -22,8 +22,8 @@ const AddGame = () => {
       return;
     }
 
-    const ip = getIP();
-    await fetch(`http://${ip}:8080/game/add`, {
+    const apiAddr = getApiAddr();
+    await fetch(`http://${apiAddr}/game/add`, {
       method: "POST",
       body: JSON.stringify({ scores: playerScores, groupId: group.id }),
       headers: { "Content-Type": "application/json" },
@@ -33,8 +33,8 @@ const AddGame = () => {
   };
 
   const handlePrevPlayers = async () => {
-    const ip = getIP();
-    const url = new URL(`http://${ip}:8080/game/previous_players`);
+    const apiAddr = getApiAddr();
+    const url = new URL(`http://${apiAddr}/game/previous_players`);
     url.searchParams.append("groupId", group.id.toString());
 
     await fetch(url).then(async (response) => {

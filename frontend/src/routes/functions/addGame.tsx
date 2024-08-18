@@ -1,4 +1,4 @@
-import getIP from "../../data/ip";
+import getApiAddr from "../../data/ip";
 import { Group, Player } from "../../data/types";
 
 export interface PlayerScore {
@@ -7,8 +7,8 @@ export interface PlayerScore {
 }
 
 export async function loader({ params }: { params: { groupId: string } }) {
-  const ip = getIP();
-  let url = new URL(`http://${ip}:8080/groups/list_players`);
+  const apiAddr = getApiAddr();
+  let url = new URL(`http://${apiAddr}/groups/list_players`);
   url.searchParams.append("id", params.groupId);
 
   const players = await fetch(url).then(async (response) => {
@@ -30,7 +30,7 @@ export async function loader({ params }: { params: { groupId: string } }) {
     return players;
   });
 
-  url = new URL(`http://${ip}:8080/groups/get`);
+  url = new URL(`http://${apiAddr}/groups/get`);
   url.searchParams.append("id", params.groupId);
 
   const group = await fetch(url).then(async (response) => {

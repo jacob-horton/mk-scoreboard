@@ -1,4 +1,4 @@
-import getIP from "./ip";
+import getApiAddr from "./ip";
 
 export interface PlayerStats {
   id: number;
@@ -15,8 +15,8 @@ export async function getHeadToHeadStats(
   groupId: number,
   nGames?: number,
 ): Promise<PlayerStats[]> {
-  const ip = getIP();
-  const url = new URL(`http://${ip}:8080/players/head_to_head`);
+  const apiAddr = getApiAddr();
+  const url = new URL(`http://${apiAddr}/players/head_to_head`);
   url.searchParams.append("groupId", groupId.toString());
   url.searchParams.append("ids", playerIds.join(","));
 
@@ -48,8 +48,8 @@ export async function getPlayerStats(
   nGames: number | null,
   skipMostRecent: boolean,
 ): Promise<PlayerStats[]> {
-  const ip = getIP();
-  const url = new URL(`http://${ip}:8080/groups/stats`);
+  const apiAddr = getApiAddr();
+  const url = new URL(`http://${apiAddr}/groups/stats`);
   url.searchParams.append("id", groupId.toString());
   url.searchParams.append("skipMostRecent", skipMostRecent.toString());
 

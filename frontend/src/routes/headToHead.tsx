@@ -10,7 +10,7 @@ import {
   Legend,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import getIP from "../data/ip";
+import getApiAddr from "../data/ip";
 import Page from "../components/Page";
 import { loader } from "./functions/addGame";
 import { useEffect, useState } from "react";
@@ -36,8 +36,8 @@ async function getHistory(
   groupId: number,
   nGames?: number
 ) {
-  const ip = getIP();
-  let url = new URL(`http://${ip}:8080/players/head_to_head_history`);
+  const apiAddr = getApiAddr();
+  let url = new URL(`http://${apiAddr}/players/head_to_head_history`);
   url.searchParams.append("ids", playerIds.join(","));
   url.searchParams.append("groupId", groupId.toString());
 
