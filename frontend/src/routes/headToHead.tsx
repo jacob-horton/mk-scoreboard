@@ -37,7 +37,7 @@ async function getHistory(
   nGames?: number
 ) {
   const apiAddr = getApiAddr();
-  let url = new URL(`http://${apiAddr}/players/head_to_head_history`);
+  let url = new URL(`${apiAddr}/players/head_to_head_history`);
   url.searchParams.append("ids", playerIds.join(","));
   url.searchParams.append("groupId", groupId.toString());
 

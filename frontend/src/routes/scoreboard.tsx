@@ -14,7 +14,7 @@ import NumberGamesSelector, { NumberGames } from "../components/NumberGames";
 
 export async function loader({ params }: { params: { groupId: string } }) {
   const apiAddr = getApiAddr();
-  const url = new URL(`http://${apiAddr}/groups/get`);
+  const url = new URL(`${apiAddr}/groups/get`);
   url.searchParams.append("id", params.groupId);
 
   return fetch(url).then(async (response) => {
@@ -33,7 +33,7 @@ async function getBadges(ids: number[], groupId: number) {
   }
 
   const apiAddr = getApiAddr();
-  const url = new URL(`http://${apiAddr}/players/badges`);
+  const url = new URL(`${apiAddr}/players/badges`);
   url.searchParams.append("ids", ids.join(","));
   url.searchParams.append("groupId", groupId.toString());
 

@@ -23,7 +23,7 @@ const AddGame = () => {
     }
 
     const apiAddr = getApiAddr();
-    await fetch(`http://${apiAddr}/game/add`, {
+    await fetch(`${apiAddr}/game/add`, {
       method: "POST",
       body: JSON.stringify({ scores: playerScores, groupId: group.id }),
       headers: { "Content-Type": "application/json" },
@@ -34,7 +34,7 @@ const AddGame = () => {
 
   const handlePrevPlayers = async () => {
     const apiAddr = getApiAddr();
-    const url = new URL(`http://${apiAddr}/game/previous_players`);
+    const url = new URL(`${apiAddr}/game/previous_players`);
     url.searchParams.append("groupId", group.id.toString());
 
     await fetch(url).then(async (response) => {

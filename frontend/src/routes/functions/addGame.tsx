@@ -8,7 +8,7 @@ export interface PlayerScore {
 
 export async function loader({ params }: { params: { groupId: string } }) {
   const apiAddr = getApiAddr();
-  let url = new URL(`http://${apiAddr}/groups/list_players`);
+  let url = new URL(`${apiAddr}/groups/list_players`);
   url.searchParams.append("id", params.groupId);
 
   const players = await fetch(url).then(async (response) => {
@@ -30,7 +30,7 @@ export async function loader({ params }: { params: { groupId: string } }) {
     return players;
   });
 
-  url = new URL(`http://${apiAddr}/groups/get`);
+  url = new URL(`${apiAddr}/groups/get`);
   url.searchParams.append("id", params.groupId);
 
   const group = await fetch(url).then(async (response) => {

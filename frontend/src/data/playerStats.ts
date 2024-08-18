@@ -16,7 +16,7 @@ export async function getHeadToHeadStats(
   nGames?: number,
 ): Promise<PlayerStats[]> {
   const apiAddr = getApiAddr();
-  const url = new URL(`http://${apiAddr}/players/head_to_head`);
+  const url = new URL(`${apiAddr}/players/head_to_head`);
   url.searchParams.append("groupId", groupId.toString());
   url.searchParams.append("ids", playerIds.join(","));
 
@@ -49,7 +49,7 @@ export async function getPlayerStats(
   skipMostRecent: boolean,
 ): Promise<PlayerStats[]> {
   const apiAddr = getApiAddr();
-  const url = new URL(`http://${apiAddr}/groups/stats`);
+  const url = new URL(`${apiAddr}/groups/stats`);
   url.searchParams.append("id", groupId.toString());
   url.searchParams.append("skipMostRecent", skipMostRecent.toString());
 
