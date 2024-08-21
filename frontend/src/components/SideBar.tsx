@@ -41,6 +41,17 @@ const SideBar: React.FC<SideBarProps> = ({
   className,
   onCloseClick: onClose,
 }) => {
+  const active = [];
+  const archived = [];
+
+  for (const group of groups) {
+    if (group.archived) {
+      archived.push(group);
+    } else {
+      active.push(group);
+    }
+  }
+
   return (
     <div
       className={`bg-gray-100
@@ -55,9 +66,14 @@ const SideBar: React.FC<SideBarProps> = ({
       <Title onClose={onClose} />
       <nav className="px-3 py-4 grow flex">
         <ul className="space-y-2 font-medium flex flex-col grow">
-          <li key="active-header">Active</li>
-          <hr />
-          {groups.filter((group) => !group.archived).map((group) => (
+          {
+            active.length > 0 ?
+              <>
+                <li key="active-header">Active</li>
+                <hr />
+              </> : null
+          }
+          {active.map((group) => (
             <li key={group.id}>
               <SideBarButton
                 page={`/groups/${group.id}/scoreboard`}
@@ -66,8 +82,13 @@ const SideBar: React.FC<SideBarProps> = ({
               />
             </li>
           ))}
-          <li key="archived-header" className="pt-8">Archived</li>
-          <hr />
+          {
+            archived.length > 0 ?
+              <>
+                <li key="archived-header" className="pt-8">Archived</li>
+                <hr />
+              </> : null
+          }
           {groups.filter((group) => group.archived).map((group) => (
             <li key={group.id}>
               <SideBarButton
