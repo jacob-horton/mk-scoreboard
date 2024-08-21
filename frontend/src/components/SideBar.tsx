@@ -55,7 +55,20 @@ const SideBar: React.FC<SideBarProps> = ({
       <Title onClose={onClose} />
       <nav className="px-3 py-4 grow flex">
         <ul className="space-y-2 font-medium flex flex-col grow">
-          {groups.map((group) => (
+          <li key="active-header">Active</li>
+          <hr />
+          {groups.filter((group) => !group.archived).map((group) => (
+            <li key={group.id}>
+              <SideBarButton
+                page={`/groups/${group.id}/scoreboard`}
+                onClick={onClose}
+                name={group.name}
+              />
+            </li>
+          ))}
+          <li key="archived-header" className="pt-8">Archived</li>
+          <hr />
+          {groups.filter((group) => group.archived).map((group) => (
             <li key={group.id}>
               <SideBarButton
                 page={`/groups/${group.id}/scoreboard`}

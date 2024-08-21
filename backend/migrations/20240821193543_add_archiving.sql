@@ -1,0 +1,1 @@
+ALTER TABLE grp ADD archived BOOLEAN NOT NULL DEFAULT false;

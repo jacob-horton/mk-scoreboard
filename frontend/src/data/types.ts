@@ -12,6 +12,7 @@ export interface Group {
   id: number;
   name: string;
   maxScore: number | null;
+  archived: boolean;
 }
 
 export interface Badges {

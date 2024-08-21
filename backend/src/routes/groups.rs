@@ -20,6 +20,7 @@ struct Group {
     id: i32,
     name: String,
     max_score: Option<i32>,
+    archived: bool,
 }
 
 #[get("/groups/list")]
@@ -35,6 +36,7 @@ pub async fn list_groups(data: Data<AppState>) -> impl Responder {
             id: g.id,
             name: g.name.to_string(),
             max_score: g.max_score,
+            archived: g.archived,
         })
         .collect();
     HttpResponse::Ok().json(groups)
@@ -56,6 +58,7 @@ pub async fn get_group(data: Data<AppState>, info: web::Query<GroupIdData>) -> i
         id: group.id,
         name: group.name.to_string(),
         max_score: group.max_score,
+        archived: group.archived,
     })
 }
 
@@ -174,19 +177,6 @@ pub async fn list_players(data: Data<AppState>, info: Query<GroupIdData>) -> imp
     .fetch_all(data.pg_pool.as_ref())
     .await
     .unwrap();
-
-    // // Insert all players into new group
-    // let group = 4;
-    // for player in players.iter() {
-    //     sqlx::query!(
-    //         "INSERT INTO player_group (player_id, group_id) VALUES ($1, $2)",
-    //         player.id,
-    //         group,
-    //     )
-    //     .execute(data.pg_pool.as_ref())
-    //     .await
-    //     .unwrap();
-    // }
 
     HttpResponse::Ok().json(
         players
