@@ -420,7 +420,7 @@ pub async fn head_to_head(data: Data<AppState>, info: Query<HeadToHeadData>) -> 
     // Player ID to stats
     let mut players: HashMap<i32, PlayerStats> = HashMap::new();
     for player_game in player_games {
-        let mut player = players.entry(player_game.player_id).or_insert(PlayerStats {
+        let player = players.entry(player_game.player_id).or_insert(PlayerStats {
             id: player_game.player_id,
             name: modify_birthday(&player_game.player_name, &player_game.birthday),
             points: 0,

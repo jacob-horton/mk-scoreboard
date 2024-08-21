@@ -125,7 +125,7 @@ pub async fn get_group_stats(
             }
         }
 
-        let mut player = players.entry(player_game.player_id).or_insert(PlayerStats {
+        let player = players.entry(player_game.player_id).or_insert(PlayerStats {
             id: player_game.player_id,
             name: modify_birthday(&player_game.player_name, &player_game.birthday),
             points: 0,
