@@ -1,3 +1,5 @@
+use std::ops::DerefMut;
+
 use actix_web::{
     get,
     http::Error,
@@ -30,12 +32,12 @@ pub async fn add_game(
 ) -> Result<HttpResponse, Error> {
     let mut transaction = data.pg_pool.begin().await.unwrap();
     sqlx::query!("INSERT INTO game (group_id) VALUES ($1);", payload.group_id)
-        .execute(&mut transaction)
+        .execute(transaction.deref_mut())
         .await
         .unwrap();
 
     let game_id = sqlx::query!("SELECT currval(pg_get_serial_sequence('game','id')) as id;")
-        .fetch_one(&mut transaction)
+        .fetch_one(transaction.deref_mut())
         .await
         .unwrap()
         .id
@@ -48,7 +50,7 @@ pub async fn add_game(
             game_id as i32,
             score.player_id,
         )
-        .execute(&mut transaction)
+        .execute(transaction.deref_mut())
         .await
         .unwrap();
     }

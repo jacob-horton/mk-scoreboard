@@ -5,6 +5,7 @@ use actix_web::{
     web::{Data, Query},
     HttpResponse, Responder,
 };
+use chrono::NaiveDate;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
@@ -249,9 +250,9 @@ pub struct PlayerIdData {
 #[get("/players/name")]
 pub async fn player_name(data: Data<AppState>, info: Query<PlayerIdData>) -> impl Responder {
     let player = sqlx::query!(
-        "SELECT name, birthday
+        r#"SELECT name, birthday as "birthday!: Option<NaiveDate>"
         FROM player
-        WHERE player.id = $1",
+        WHERE player.id = $1"#,
         info.id,
     )
     .fetch_one(data.pg_pool.as_ref())
@@ -384,11 +385,11 @@ pub async fn head_to_head(data: Data<AppState>, info: Query<HeadToHeadData>) -> 
     .collect_vec();
 
     let player_games = sqlx::query!(
-        "SELECT      
+        r#"SELECT
             game_score.player_id as player_id,
             game_score.game_id as game_id, 
             player.name as player_name,
-            player.birthday as birthday,
+            player.birthday as "birthday!: Option<NaiveDate>",
             game_score.score as points
         FROM game_score
         INNER JOIN player
@@ -396,7 +397,7 @@ pub async fn head_to_head(data: Data<AppState>, info: Query<HeadToHeadData>) -> 
         INNER JOIN game
             ON game.id = game_score.game_id
         WHERE player.id = ANY($1) AND game_id = ANY($2)
-        ORDER BY date DESC",
+        ORDER BY date DESC"#,
         &ids,
         &common_games
     )

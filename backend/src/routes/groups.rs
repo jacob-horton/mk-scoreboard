@@ -5,6 +5,7 @@ use actix_web::{
     web::{self, Data, Query},
     HttpResponse, Responder,
 };
+use chrono::NaiveDate;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
@@ -77,17 +78,17 @@ pub async fn get_group_stats(
 ) -> impl Responder {
     // Players in group
     let player_games = sqlx::query!(
-        "SELECT
+        r#"SELECT
             game_score.player_id as player_id,
             game_score.game_id as game_id, 
             player.name as player_name,
-            player.birthday as birthday,
+            player.birthday as "birthday!: Option<NaiveDate>",
             game_score.score as points
         FROM player
         INNER JOIN game_score ON game_score.player_id = player.id
         INNER JOIN game ON game_score.game_id = game.id
         WHERE game.group_id = $1
-        ORDER BY date DESC",
+        ORDER BY date DESC"#,
         info.id
     )
     .fetch_all(data.pg_pool.as_ref())
@@ -167,11 +168,11 @@ pub async fn get_group_stats(
 #[get("/groups/list_players")]
 pub async fn list_players(data: Data<AppState>, info: Query<GroupIdData>) -> impl Responder {
     let players = sqlx::query!(
-        "SELECT player.id as id, name, birthday
+        r#"SELECT player.id as id, name, birthday as "birthday!: Option<NaiveDate>"
         FROM player
         INNER JOIN player_group
             ON player.id = player_group.player_id
-        WHERE group_id = $1",
+        WHERE group_id = $1"#,
         info.id
     )
     .fetch_all(data.pg_pool.as_ref())
