@@ -204,14 +204,14 @@ const Graph = () => {
         <Line options={options} data={data} />
         {points && points.length && (
           <div className="flex flex-row space-x-2 text-gray-600 text-lg">
-            <p>Std dev:</p>
-            <p>{stdDev(points).toFixed(2)}</p>
+            <p>Average: </p>
+            <p>{avg} ± {stdDev(points).toFixed(2)}</p>
           </div>
         )}
         {showStreak && streak.scores && streak.scores.length && (
           <div className="flex flex-row space-x-2 text-gray-600 text-lg">
-            <p>Best streak std dev:</p>
-            <p>{streak.stdDev.toFixed(2)}</p>
+            <p>Best streak average: </p>
+            <p>{streak.avg} ± {streak.stdDev.toFixed(2)}</p>
           </div>
         )}
         <div className="h-4" />
