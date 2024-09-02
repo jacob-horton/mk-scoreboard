@@ -2,10 +2,10 @@ use std::collections::HashMap;
 
 use actix_web::{
     get,
-    web::{Data, Query},
+    web::{self, Data, Query},
     HttpResponse, Responder,
 };
-use chrono::NaiveDate;
+use chrono::{serde::ts_seconds_option, DateTime, NaiveDate, Utc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
@@ -36,12 +36,11 @@ pub struct Player {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct HistoryData {
-    id: i32,
     group_id: i32,
     n: Option<usize>,
 }
 
-async fn get_history(pool: &PgPool, id: i32, group_id: i32, n: Option<i64>) -> Vec<i32> {
+pub async fn get_player_history(pool: &PgPool, id: i32, group_id: i32, n: Option<i64>) -> Vec<i32> {
     sqlx::query!(
         "SELECT game_score.score
         FROM player
@@ -65,12 +64,17 @@ async fn get_history(pool: &PgPool, id: i32, group_id: i32, n: Option<i64>) -> V
     .collect()
 }
 
-#[get("/players/history")]
-pub async fn player_history(data: Data<AppState>, info: Query<HistoryData>) -> impl Responder {
+#[get("/player/{player_id}/history")]
+pub async fn player_history(
+    data: Data<AppState>,
+    info: Query<HistoryData>,
+    path: web::Path<i32>,
+) -> impl Responder {
+    let player_id = path.into_inner();
     HttpResponse::Ok().json(
-        get_history(
+        get_player_history(
             &data.pg_pool,
-            info.id,
+            player_id,
             info.group_id,
             info.n.map(|n| n as i64),
         )
@@ -86,8 +90,13 @@ pub struct StreakResponse {
     std_dev: f32,
 }
 
-#[get("/players/best_streak")]
-pub async fn player_best_streak(data: Data<AppState>, info: Query<HistoryData>) -> impl Responder {
+#[get("/player/{player_id}/best_streak")]
+pub async fn player_best_streak(
+    data: Data<AppState>,
+    info: Query<HistoryData>,
+    path: web::Path<i32>,
+) -> impl Responder {
+    let player_id = path.into_inner();
     let scores = sqlx::query!(
         "SELECT game_score.score
         FROM player
@@ -97,7 +106,7 @@ pub async fn player_best_streak(data: Data<AppState>, info: Query<HistoryData>) 
             ON game_score.game_id = game.id
         WHERE player.id = $1 AND game.group_id = $2
         ORDER BY date ASC",
-        info.id,
+        player_id,
         info.group_id,
     )
     .fetch_all(data.pg_pool.as_ref())
@@ -143,78 +152,6 @@ pub async fn player_best_streak(data: Data<AppState>, info: Query<HistoryData>) 
     HttpResponse::Ok().json(streak_resp)
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
-#[serde(rename_all = "camelCase")]
-pub struct Badges {
-    star: usize,
-    gold: usize,
-    silver: usize,
-    bronze: usize,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct GetBadgesData {
-    ids: String,
-    group_id: i32,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct BadgesWithId {
-    id: i32,
-    badges: Badges,
-}
-
-struct NoMaxScoreErr;
-
-async fn get_badges(
-    pool: &PgPool,
-    group_id: i32,
-    ids: &[i32],
-) -> Result<Vec<BadgesWithId>, NoMaxScoreErr> {
-    let max_score = sqlx::query!("SELECT max_score FROM grp WHERE id = $1", group_id)
-        .fetch_one(pool)
-        .await
-        .unwrap()
-        .max_score;
-
-    let mut all_badges = Vec::with_capacity(ids.len());
-    for id in ids {
-        let scores = get_history(pool, *id, group_id, None).await;
-
-        // TODO: find correct response for error
-        let max_score = match max_score {
-            Some(n) => n,
-            None => return Err(NoMaxScoreErr),
-        } as f32;
-
-        let mut badges: Badges = Default::default();
-
-        let star_score = max_score;
-        let gold_score = 0.94 * max_score;
-        let silver_score = 0.88 * max_score;
-        let bronze_score = 0.83 * max_score;
-
-        for score in scores {
-            let score = score as f32;
-            if score >= star_score {
-                badges.star += 1;
-            } else if score >= gold_score {
-                badges.gold += 1;
-            } else if score >= silver_score {
-                badges.silver += 1;
-            } else if score >= bronze_score {
-                badges.bronze += 1;
-            }
-        }
-
-        all_badges.push(BadgesWithId { badges, id: *id });
-    }
-
-    Ok(all_badges)
-}
-
 fn parse_ids(ids: &str) -> Result<Vec<i32>, ()> {
     decode(ids)
         .map_err(|_| ())?
@@ -225,42 +162,33 @@ fn parse_ids(ids: &str) -> Result<Vec<i32>, ()> {
         .map_err(|_| ())
 }
 
-#[get("/players/badges")]
-pub async fn player_badges(data: Data<AppState>, info: Query<GetBadgesData>) -> impl Responder {
-    let ids: Vec<i32> = match parse_ids(&info.ids) {
-        Ok(ids) => ids,
-        Err(_) => return HttpResponse::BadRequest().body("Could not parse ids"),
-    };
-
-    let badges = get_badges(data.pg_pool.as_ref(), info.group_id, &ids).await;
-    match badges {
-        Ok(badges) => HttpResponse::Ok().json(badges),
-        Err(_) => {
-            HttpResponse::BadRequest().body("Group does not have max score, so cannot have badges")
-        }
-    }
-}
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct PlayerIdData {
-    id: i32,
+pub struct PlayerData {
+    name: String,
+    #[serde(with = "ts_seconds_option")]
+    birthday: Option<DateTime<Utc>>,
 }
 
-#[get("/players/name")]
-pub async fn player_name(data: Data<AppState>, info: Query<PlayerIdData>) -> impl Responder {
+#[get("/player/{player_id}")]
+pub async fn player_name(data: Data<AppState>, path: web::Path<i32>) -> impl Responder {
+    let player_id = path.into_inner();
     let player = sqlx::query!(
         r#"SELECT name, birthday as "birthday!: Option<NaiveDate>"
         FROM player
         WHERE player.id = $1"#,
-        info.id,
+        player_id,
     )
     .fetch_one(data.pg_pool.as_ref())
     .await
     .unwrap();
 
     let name = modify_birthday(&player.name, &player.birthday);
-    HttpResponse::Ok().json(name)
+    let player_data = PlayerData {
+        name,
+        birthday: None,
+    };
+    HttpResponse::Ok().json(player_data)
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

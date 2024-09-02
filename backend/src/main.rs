@@ -3,10 +3,9 @@ use std::{env, sync::Arc};
 use actix_cors::Cors;
 use actix_web::{http, web::Data, App, HttpServer};
 use routes::games::{add_game, get_previous_players};
-use routes::groups::{get_group, get_group_stats, list_groups, list_players};
+use routes::groups::{get_group, get_group_badges, get_group_stats, list_groups, list_players};
 use routes::players::{
-    head_to_head, head_to_head_history, player_badges, player_best_streak, player_history,
-    player_name,
+    head_to_head, head_to_head_history, player_best_streak, player_history, player_name,
 };
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
@@ -52,7 +51,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_group)
             .service(player_history)
             .service(player_name)
-            .service(player_badges)
+            .service(get_group_badges)
             .service(player_best_streak)
             .service(head_to_head)
             .service(head_to_head_history)

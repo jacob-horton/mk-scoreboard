@@ -2,18 +2,21 @@ use std::collections::HashMap;
 
 use actix_web::{
     get,
-    web::{self, Data, Query},
+    web::{self, Data},
     HttpResponse, Responder,
 };
 use chrono::NaiveDate;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 
 use crate::{
     routes::players::{Player, PlayerStats},
     utils::{modify_birthday, std_dev},
     AppState,
 };
+
+use super::players::get_player_history;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -24,7 +27,7 @@ struct Group {
     archived: bool,
 }
 
-#[get("/groups/list")]
+#[get("/groups")]
 pub async fn list_groups(data: Data<AppState>) -> impl Responder {
     let groups = sqlx::query!("SELECT * FROM grp")
         .fetch_all(data.pg_pool.as_ref())
@@ -43,14 +46,10 @@ pub async fn list_groups(data: Data<AppState>) -> impl Responder {
     HttpResponse::Ok().json(groups)
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct GroupIdData {
-    id: i32,
-}
-
-#[get("/groups/get")]
-pub async fn get_group(data: Data<AppState>, info: web::Query<GroupIdData>) -> impl Responder {
-    let group = sqlx::query!("SELECT * FROM grp WHERE id = $1", info.id)
+#[get("/group/{group_id}")]
+pub async fn get_group(data: Data<AppState>, path: web::Path<i32>) -> impl Responder {
+    let group_id = path.into_inner();
+    let group = sqlx::query!("SELECT * FROM grp WHERE id = $1", group_id)
         .fetch_one(data.pg_pool.as_ref())
         .await
         .unwrap();
@@ -66,16 +65,18 @@ pub async fn get_group(data: Data<AppState>, info: web::Query<GroupIdData>) -> i
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct GetStatsData {
-    id: i32,
     n: Option<i32>, // Number of games
     skip_most_recent: bool,
 }
 
-#[get("/groups/stats")]
+#[get("/group/{group_id}/stats")]
 pub async fn get_group_stats(
     data: Data<AppState>,
     info: web::Query<GetStatsData>,
+    path: web::Path<i32>,
 ) -> impl Responder {
+    let group_id = path.into_inner();
+
     // Players in group
     let player_games = sqlx::query!(
         r#"SELECT
@@ -89,7 +90,7 @@ pub async fn get_group_stats(
         INNER JOIN game ON game_score.game_id = game.id
         WHERE game.group_id = $1
         ORDER BY date DESC"#,
-        info.id
+        group_id,
     )
     .fetch_all(data.pg_pool.as_ref())
     .await
@@ -111,7 +112,7 @@ pub async fn get_group_stats(
     let most_recent_id = match info.skip_most_recent {
         true => sqlx::query!(
             "SELECT game.id FROM game WHERE game.group_id = $1 ORDER BY date DESC LIMIT 1",
-            info.id
+            group_id,
         )
         .fetch_one(data.pg_pool.as_ref())
         .await
@@ -165,15 +166,17 @@ pub async fn get_group_stats(
     HttpResponse::Ok().json(values)
 }
 
-#[get("/groups/list_players")]
-pub async fn list_players(data: Data<AppState>, info: Query<GroupIdData>) -> impl Responder {
+#[get("/group/{group_id}/players")]
+pub async fn list_players(data: Data<AppState>, path: web::Path<i32>) -> impl Responder {
+    let group_id = path.into_inner();
+
     let players = sqlx::query!(
         r#"SELECT player.id as id, name, birthday as "birthday!: Option<NaiveDate>"
         FROM player
         INNER JOIN player_group
             ON player.id = player_group.player_id
         WHERE group_id = $1"#,
-        info.id
+        group_id,
     )
     .fetch_all(data.pg_pool.as_ref())
     .await
@@ -188,4 +191,92 @@ pub async fn list_players(data: Data<AppState>, info: Query<GroupIdData>) -> imp
             })
             .collect::<Vec<_>>(),
     )
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct Badges {
+    star: usize,
+    gold: usize,
+    silver: usize,
+    bronze: usize,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct BadgesWithId {
+    id: i32,
+    badges: Badges,
+}
+
+struct NoMaxScoreErr;
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct GetBadgesData {
+    ids: String,
+    group_id: i32,
+}
+
+async fn get_badges(pool: &PgPool, group_id: i32) -> Result<Vec<BadgesWithId>, NoMaxScoreErr> {
+    let max_score = sqlx::query!("SELECT max_score FROM grp WHERE id = $1", group_id)
+        .fetch_one(pool)
+        .await
+        .unwrap()
+        .max_score;
+
+    let player_ids = sqlx::query_scalar!(
+        "SELECT player_id FROM player_group WHERE group_id = $1",
+        group_id
+    )
+    .fetch_all(pool)
+    .await
+    .unwrap();
+
+    let mut all_badges = Vec::with_capacity(player_ids.len());
+    for id in player_ids {
+        let scores = get_player_history(pool, id, group_id, None).await;
+
+        // TODO: find correct response for error
+        let max_score = match max_score {
+            Some(n) => n,
+            None => return Err(NoMaxScoreErr),
+        } as f32;
+
+        let mut badges: Badges = Default::default();
+
+        let star_score = max_score;
+        let gold_score = 0.94 * max_score;
+        let silver_score = 0.88 * max_score;
+        let bronze_score = 0.83 * max_score;
+
+        for score in scores {
+            let score = score as f32;
+            if score >= star_score {
+                badges.star += 1;
+            } else if score >= gold_score {
+                badges.gold += 1;
+            } else if score >= silver_score {
+                badges.silver += 1;
+            } else if score >= bronze_score {
+                badges.bronze += 1;
+            }
+        }
+
+        all_badges.push(BadgesWithId { badges, id });
+    }
+
+    Ok(all_badges)
+}
+
+#[get("/group/{group_id}/badges")]
+pub async fn get_group_badges(data: Data<AppState>, path: web::Path<i32>) -> impl Responder {
+    let group_id = path.into_inner();
+    let badges = get_badges(data.pg_pool.as_ref(), group_id).await;
+    match badges {
+        Ok(badges) => HttpResponse::Ok().json(badges),
+        Err(_) => {
+            HttpResponse::BadRequest().body("Group does not have max score, so cannot have badges")
+        }
+    }
 }

@@ -25,7 +25,7 @@ pub struct GameScore {
     score: i32,
 }
 
-#[post("/game/add")]
+#[post("/game")]
 pub async fn add_game(
     data: Data<AppState>,
     payload: web::Json<Game>,

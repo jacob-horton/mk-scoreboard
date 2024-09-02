@@ -23,7 +23,7 @@ const AddGame = () => {
     }
 
     const apiAddr = getApiAddr();
-    await fetch(`${apiAddr}/game/add`, {
+    await fetch(`${apiAddr}/game`, {
       method: "POST",
       body: JSON.stringify({ scores: playerScores, groupId: group.id }),
       headers: { "Content-Type": "application/json" },

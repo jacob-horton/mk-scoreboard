@@ -14,8 +14,7 @@ import NumberGamesSelector, { NumberGames } from "../components/NumberGames";
 
 export async function loader({ params }: { params: { groupId: string } }) {
   const apiAddr = getApiAddr();
-  const url = new URL(`${apiAddr}/groups/get`);
-  url.searchParams.append("id", params.groupId);
+  const url = new URL(`${apiAddr}/group/${params.groupId}`);
 
   return fetch(url).then(async (response) => {
     if (!response.ok) {
@@ -27,15 +26,9 @@ export async function loader({ params }: { params: { groupId: string } }) {
   });
 }
 
-async function getBadges(ids: number[], groupId: number) {
-  if (ids.length == 0) {
-    return new Map();
-  }
-
+async function getBadges(groupId: number) {
   const apiAddr = getApiAddr();
-  const url = new URL(`${apiAddr}/players/badges`);
-  url.searchParams.append("ids", ids.join(","));
-  url.searchParams.append("groupId", groupId.toString());
+  const url = new URL(`${apiAddr}/group/${groupId}/badges`);
 
   return fetch(url).then(async (response) => {
     if (!response.ok) {
@@ -84,10 +77,7 @@ const Scoreboard = () => {
       setPlayerStats(stats);
       setPrevPlayerStats(prevStats);
 
-      const badges = await getBadges(
-        stats.map((p) => p.id),
-        groupId
-      );
+      const badges = await getBadges(groupId);
 
       setBadges(badges);
     }

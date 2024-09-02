@@ -49,8 +49,7 @@ export async function getPlayerStats(
   skipMostRecent: boolean,
 ): Promise<PlayerStats[]> {
   const apiAddr = getApiAddr();
-  const url = new URL(`${apiAddr}/groups/stats`);
-  url.searchParams.append("id", groupId.toString());
+  const url = new URL(`${apiAddr}/group/${groupId}/stats`);
   url.searchParams.append("skipMostRecent", skipMostRecent.toString());
 
   if (nGames !== null) {

@@ -34,8 +34,7 @@ async function getScores(
   nGames?: number
 ) {
   const apiAddr = getApiAddr();
-  const url = new URL(`${apiAddr}/players/${endpoint}`);
-  url.searchParams.append("id", playerId.toString());
+  const url = new URL(`${apiAddr}/player/${playerId}/${endpoint}`);
   url.searchParams.append("groupId", groupId.toString());
 
   if (nGames !== undefined) {
@@ -54,8 +53,7 @@ async function getScores(
 
 async function getName(playerId: number) {
   const apiAddr = getApiAddr();
-  const url = new URL(`${apiAddr}/players/name`);
-  url.searchParams.append("id", playerId.toString());
+  const url = new URL(`${apiAddr}/player/${playerId}`);
 
   return await fetch(url).then(async (response) => {
     if (!response.ok) {
@@ -63,7 +61,7 @@ async function getName(playerId: number) {
       throw new Error(response.statusText);
     }
 
-    return response.json().then((data) => data as string);
+    return response.json().then((data) => data.name as string);
   });
 }
 
