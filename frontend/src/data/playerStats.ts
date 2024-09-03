@@ -16,8 +16,7 @@ export async function getHeadToHeadStats(
   nGames?: number,
 ): Promise<PlayerStats[]> {
   const apiAddr = getApiAddr();
-  const url = new URL(`${apiAddr}/players/head_to_head`);
-  url.searchParams.append("groupId", groupId.toString());
+  const url = new URL(`${apiAddr}/group/${groupId}/head_to_head`);
   url.searchParams.append("ids", playerIds.join(","));
 
   if (nGames !== undefined) {
