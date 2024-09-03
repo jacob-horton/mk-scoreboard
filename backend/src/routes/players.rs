@@ -1,11 +1,12 @@
 use actix_web::{
-    get,
+    cookie::time::Month,
+    get, post,
     web::{self, Data, Query},
     HttpResponse, Responder,
 };
-use chrono::{serde::ts_seconds_option, DateTime, NaiveDate, Utc};
+use chrono::{Datelike, NaiveDate};
 use serde::{Deserialize, Serialize};
-use sqlx::PgPool;
+use sqlx::{types::time::Date, Error, PgPool};
 
 use crate::{utils::modify_birthday, AppState};
 
@@ -148,16 +149,16 @@ pub async fn player_best_streak(
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PlayerData {
+    id: i32,
     name: String,
-    #[serde(with = "ts_seconds_option")]
-    birthday: Option<DateTime<Utc>>,
+    birthday: Option<NaiveDate>,
 }
 
 #[get("/player/{player_id}")]
 pub async fn player_name(data: Data<AppState>, path: web::Path<i32>) -> impl Responder {
     let player_id = path.into_inner();
     let player = sqlx::query!(
-        r#"SELECT name, birthday as "birthday!: Option<NaiveDate>"
+        r#"SELECT id, name, birthday as "birthday: NaiveDate"
         FROM player
         WHERE player.id = $1"#,
         player_id,
@@ -169,7 +170,59 @@ pub async fn player_name(data: Data<AppState>, path: web::Path<i32>) -> impl Res
     let name = modify_birthday(&player.name, &player.birthday);
     let player_data = PlayerData {
         name,
-        birthday: None,
+        id: player.id,
+        birthday: player.birthday,
     };
     HttpResponse::Ok().json(player_data)
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct CreatePlayerData {
+    name: String,
+    birthday: Option<NaiveDate>,
+}
+
+#[post("/player")]
+pub async fn create_player(
+    data: Data<AppState>,
+    payload: web::Json<CreatePlayerData>,
+) -> impl Responder {
+    let date = payload.birthday.map(|b| {
+        Date::from_calendar_date(
+            b.year(),
+            Month::try_from(b.month0() as u8 + 1).unwrap(),
+            b.day0() as u8 + 1,
+        )
+        .unwrap()
+    });
+
+    let player_result = sqlx::query!(
+        r#"INSERT INTO player (name, birthday)
+        VALUES ($1, $2)
+        RETURNING id, name, birthday as "birthday: NaiveDate""#,
+        payload.name,
+        date,
+    )
+    .fetch_one(data.pg_pool.as_ref())
+    .await;
+
+    match player_result {
+        Ok(player) => {
+            let player_data = PlayerData {
+                name: player.name,
+                id: player.id,
+                birthday: player.birthday,
+            };
+            return HttpResponse::Ok().json(player_data);
+        }
+        Err(Error::Database(e)) => {
+            if e.is_unique_violation() && e.constraint() == Some("name_unique") {
+                return HttpResponse::Conflict().body("Name must be unique");
+            }
+
+            panic!("{e}");
+        }
+        Err(e) => panic!("{e}"),
+    }
 }

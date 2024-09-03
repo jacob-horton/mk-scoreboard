@@ -1,30 +1,18 @@
 import React from "react";
 import { Group } from "../data/types";
 import SideBarButton from "./SideBarButton";
-import store from "store2";
 
 const Title: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const buttonClasses = "w-8 h-8 rounded-lg transition";
   return (
     <div className="flex m-4 items-center justify-between space-x-8">
       <h1 className="text-4xl font-light">Groups</h1>
-      <div className="space-x-2">
-        <button
-          className={`bg-blue-500 hover:bg-blue-400 text-white ${buttonClasses}`}
-          onClick={() => {
-            const val = store.get("graphTension");
-            store.set("graphTension", val === 0 ? 0.3 : 0);
-          }}
-        >
-          +
-        </button>
-        <button
-          className={`bg-gray-200 hover:bg-gray-300 md:hidden ${buttonClasses}`}
-          onClick={onClose}
-        >
-          {"<"}
-        </button>
-      </div>
+      <button
+        className={`bg-gray-200 hover:bg-gray-300 md:hidden ${buttonClasses}`}
+        onClick={onClose}
+      >
+        {"<"}
+      </button>
     </div>
   );
 };
@@ -64,7 +52,7 @@ const SideBar: React.FC<SideBarProps> = ({
         ${className}`}
     >
       <Title onClose={onClose} />
-      <nav className="px-3 py-4 grow flex">
+      <nav className="px-3 py-4 grow flex overflow-y-scroll">
         <ul className="space-y-2 font-medium flex flex-col grow">
           {
             active.length > 0 ?
@@ -99,10 +87,19 @@ const SideBar: React.FC<SideBarProps> = ({
             </li>
           ))}
           <li key="space" className="grow flex h-12" />
-          <li key={"Random"}>
+
+          <li key="random">
             <SideBarButton
               page="/randomiser"
               name="Item Randomiser"
+              onClick={onClose}
+            />
+          </li>
+
+          <li key="settings">
+            <SideBarButton
+              page="/settings"
+              name="Settings"
               onClick={onClose}
             />
           </li>

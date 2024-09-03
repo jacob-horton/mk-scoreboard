@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use actix_web::{
-    get,
+    get, post,
     web::{self, Data, Path, Query},
     HttpResponse, Responder,
 };
@@ -65,6 +65,37 @@ pub async fn get_group(data: Data<AppState>, path: web::Path<i32>) -> impl Respo
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct CreateGroupData {
+    name: String,
+    max_score: Option<i32>,
+}
+
+#[post("/group")]
+pub async fn create_group(
+    data: Data<AppState>,
+    payload: web::Json<CreateGroupData>,
+) -> impl Responder {
+    let group = sqlx::query!(
+        r#"INSERT INTO grp (name, max_score)
+        VALUES ($1, $2)
+        RETURNING id, name, max_score, archived"#,
+        payload.name,
+        payload.max_score,
+    )
+    .fetch_one(data.pg_pool.as_ref())
+    .await
+    .unwrap();
+
+    HttpResponse::Ok().json(Group {
+        id: group.id,
+        name: group.name.to_string(),
+        max_score: group.max_score,
+        archived: group.archived,
+    })
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct GetStatsData {
     n: Option<i32>, // Number of games
     skip_most_recent: bool,
@@ -84,7 +115,7 @@ pub async fn get_group_stats(
             game_score.player_id as player_id,
             game_score.game_id as game_id, 
             player.name as player_name,
-            player.birthday as "birthday!: Option<NaiveDate>",
+            player.birthday as "birthday: NaiveDate",
             game_score.score as points
         FROM player
         INNER JOIN game_score ON game_score.player_id = player.id
@@ -172,7 +203,7 @@ pub async fn list_players(data: Data<AppState>, path: web::Path<i32>) -> impl Re
     let group_id = path.into_inner();
 
     let players = sqlx::query!(
-        r#"SELECT player.id as id, name, birthday as "birthday!: Option<NaiveDate>"
+        r#"SELECT player.id as id, name, birthday as "birthday: NaiveDate"
         FROM player
         INNER JOIN player_group
             ON player.id = player_group.player_id
@@ -424,7 +455,7 @@ pub async fn head_to_head(
             game_score.player_id as player_id,
             game_score.game_id as game_id, 
             player.name as player_name,
-            player.birthday as "birthday!: Option<NaiveDate>",
+            player.birthday as "birthday: NaiveDate",
             game_score.score as points
         FROM game_score
         INNER JOIN player

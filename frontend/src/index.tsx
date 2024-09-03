@@ -9,6 +9,7 @@ import Graph, { loader as graphLoader } from "./routes/graph.tsx";
 import Page from "./components/Page.tsx";
 import ItemGenerator from "./routes/itemGenerator.tsx";
 import HeadToHead from "./routes/headToHead.tsx";
+import Settings from "./routes/settings.tsx";
 
 const router = createBrowserRouter([
   {
@@ -57,6 +58,10 @@ const router = createBrowserRouter([
       {
         path: "randomiser",
         element: <ItemGenerator />,
+      },
+      {
+        path: "settings",
+        element: <Settings />,
       },
     ],
   },
