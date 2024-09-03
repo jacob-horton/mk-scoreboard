@@ -3,10 +3,29 @@ use actix_web::{
     web::{self, Data, Query},
     HttpResponse, Responder,
 };
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{Error, PgPool};
 
 use crate::AppState;
+
+#[get("/players")]
+pub async fn list_all_players(data: Data<AppState>) -> impl Responder {
+    let player = sqlx::query!("SELECT id, name FROM player")
+        .fetch_all(data.pg_pool.as_ref())
+        .await
+        .unwrap();
+
+    let player_data = player
+        .into_iter()
+        .map(|player| PlayerData {
+            name: player.name,
+            id: player.id,
+        })
+        .collect_vec();
+
+    HttpResponse::Ok().json(player_data)
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]

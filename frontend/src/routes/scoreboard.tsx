@@ -148,6 +148,12 @@ const Scoreboard = () => {
       <div className="fixed bottom-0 right-0 pr-4 pb-4 space-x-4">
         <Link
           className="px-4 py-2 rounded-lg transition bg-gray-200 hover:bg-gray-300 whitespace-nowrap"
+          to={`/groups/${groupId}/add_player`}
+        >
+          Modify Players
+        </Link>
+        <Link
+          className="px-4 py-2 rounded-lg transition bg-gray-200 hover:bg-gray-300 whitespace-nowrap"
           to={`/groups/${groupId}/head_to_head`}
         >
           Head to Head

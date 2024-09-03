@@ -4,13 +4,14 @@ import "./index.css";
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
 import Scoreboard, { loader as groupLoader } from "./routes/scoreboard.tsx";
 import AddGame from "./routes/addGame.tsx";
-import { loader as addGameLoader } from "./routes/functions/addGame.tsx";
+import { loader as gameLoader } from "./routes/functions/addGame.tsx";
 import Graph, { loader as graphLoader } from "./routes/graph.tsx";
 import Page from "./components/Page.tsx";
 import ItemGenerator from "./routes/itemGenerator.tsx";
 import HeadToHead from "./routes/headToHead.tsx";
 import Settings from "./routes/settings.tsx";
 import { GroupsProvider } from "./components/GroupsProvider.tsx";
+import AddPlayerToGroup from "./routes/addPlayerToGroup.tsx";
 
 const router = createBrowserRouter([
   {
@@ -44,7 +45,7 @@ const router = createBrowserRouter([
       {
         path: "groups/:groupId/add-game",
         element: <AddGame />,
-        loader: addGameLoader,
+        loader: gameLoader,
       },
       {
         path: "groups/:groupId/graphs/:playerId",
@@ -54,7 +55,12 @@ const router = createBrowserRouter([
       {
         path: "groups/:groupId/head_to_head",
         element: <HeadToHead />,
-        loader: addGameLoader,
+        loader: gameLoader,
+      },
+      {
+        path: "groups/:groupId/add_player",
+        element: <AddPlayerToGroup />,
+        loader: gameLoader,
       },
       {
         path: "randomiser",

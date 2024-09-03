@@ -4,10 +4,12 @@ use actix_cors::Cors;
 use actix_web::{http, web::Data, App, HttpServer};
 use routes::games::{add_game, get_previous_players};
 use routes::groups::{
-    create_group, get_group, get_group_badges, get_group_stats, head_to_head, head_to_head_history,
-    list_groups, list_players,
+    add_player_to_group, create_group, get_group, get_group_badges, get_group_stats, head_to_head,
+    head_to_head_history, list_groups, list_players, remove_player_from_group,
 };
-use routes::players::{create_player, player_best_streak, player_history, player_name};
+use routes::players::{
+    create_player, list_all_players, player_best_streak, player_history, player_name,
+};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 mod routes;
@@ -34,7 +36,7 @@ async fn main() -> std::io::Result<()> {
         // TODO: properly configure cors
         let cors = Cors::default()
             .allow_any_origin()
-            .allowed_methods(vec!["GET", "POST"])
+            .allowed_methods(vec!["GET", "POST", "DELETE"])
             .allowed_header(http::header::CONTENT_TYPE);
 
         let state = AppState {
@@ -58,6 +60,9 @@ async fn main() -> std::io::Result<()> {
             .service(player_best_streak)
             .service(head_to_head)
             .service(head_to_head_history)
+            .service(list_all_players)
+            .service(add_player_to_group)
+            .service(remove_player_from_group)
     })
     .bind(("0.0.0.0", 8080))?
     .run()

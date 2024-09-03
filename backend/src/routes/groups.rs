@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use actix_web::{
-    get, post,
+    delete, get, post,
     web::{self, Data, Path, Query},
     HttpResponse, Responder,
 };
@@ -517,4 +517,40 @@ pub async fn head_to_head(
         .collect_vec();
 
     HttpResponse::Ok().json(values)
+}
+
+#[post("/group/{group_id}/player/{player_id}")]
+pub async fn add_player_to_group(
+    data: Data<AppState>,
+    path: web::Path<(i32, i32)>,
+) -> impl Responder {
+    let (group_id, player_id) = path.into_inner();
+    sqlx::query!(
+        "INSERT INTO player_group (player_id, group_id) VALUES ($1, $2)",
+        player_id,
+        group_id
+    )
+    .execute(data.pg_pool.as_ref())
+    .await
+    .unwrap();
+
+    HttpResponse::NoContent()
+}
+
+#[delete("/group/{group_id}/player/{player_id}")]
+pub async fn remove_player_from_group(
+    data: Data<AppState>,
+    path: web::Path<(i32, i32)>,
+) -> impl Responder {
+    let (group_id, player_id) = path.into_inner();
+    sqlx::query!(
+        "DELETE FROM player_group WHERE player_id = $1 AND group_id = $2",
+        player_id,
+        group_id
+    )
+    .execute(data.pg_pool.as_ref())
+    .await
+    .unwrap();
+
+    HttpResponse::NoContent()
 }
