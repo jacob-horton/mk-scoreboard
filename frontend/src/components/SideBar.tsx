@@ -1,6 +1,6 @@
-import React from "react";
-import { Group } from "../data/types";
+import React, { useContext, useMemo } from "react";
 import SideBarButton from "./SideBarButton";
+import { GroupsContext } from "./GroupsProvider";
 
 const Title: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const buttonClasses = "w-8 h-8 rounded-lg transition";
@@ -18,27 +18,31 @@ const Title: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 };
 
 interface SideBarProps {
-  groups: Group[];
   className?: string;
 
   onCloseClick?: () => void;
 }
 
 const SideBar: React.FC<SideBarProps> = ({
-  groups,
   className,
   onCloseClick: onClose,
 }) => {
-  const active = [];
-  const archived = [];
+  const { groups } = useContext(GroupsContext);
 
-  for (const group of groups) {
-    if (group.archived) {
-      archived.push(group);
-    } else {
-      active.push(group);
+  const { active, archived } = useMemo(() => {
+    const active = [];
+    const archived = [];
+
+    for (const group of groups) {
+      if (group.archived) {
+        archived.push(group);
+      } else {
+        active.push(group);
+      }
     }
-  }
+
+    return { active, archived };
+  }, [groups]);
 
   return (
     <div

@@ -10,6 +10,7 @@ import Page from "./components/Page.tsx";
 import ItemGenerator from "./routes/itemGenerator.tsx";
 import HeadToHead from "./routes/headToHead.tsx";
 import Settings from "./routes/settings.tsx";
+import { GroupsProvider } from "./components/GroupsProvider.tsx";
 
 const router = createBrowserRouter([
   {
@@ -69,8 +70,10 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <div className="h-full">
-      <RouterProvider router={router} />
-    </div>
+    <GroupsProvider>
+      <div className="h-full">
+        <RouterProvider router={router} />
+      </div>
+    </GroupsProvider>
   </React.StrictMode>
 );

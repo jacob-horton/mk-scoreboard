@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import Page from "../components/Page";
 import { Form } from "react-router-dom";
 import getApiAddr from "../data/ip";
 import IntTextBox from "../components/IntTextBox";
 import store from "store2";
+import { GroupsContext } from "../components/GroupsProvider";
 
 const Settings = () => {
   const [playerName, setPlayerName] = useState<string>("");
@@ -31,6 +32,7 @@ const Settings = () => {
 
   const [groupName, setGroupName] = useState<string>("");
   const [maxScore, setMaxScore] = useState<number | null>(null);
+  const { updateGroups } = useContext(GroupsContext);
 
   const handleCreateGroup = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
@@ -55,7 +57,7 @@ const Settings = () => {
 
     setGroupName("");
     setMaxScore(null);
-    // TODO: refresh side bar
+    updateGroups();
   }
 
   const [graphTension, _setGraphTension] = useState<number>(store.get("graphTension"));

@@ -3,11 +3,6 @@ import { getGroups } from "../data/groups";
 import React, { ReactNode, useEffect, useState } from "react";
 import { Group } from "../data/types";
 
-export async function loader() {
-  const groups = await getGroups();
-  return { groups };
-}
-
 export interface PageProps {
   children: ReactNode;
   titleBar?: ReactNode;
@@ -17,19 +12,9 @@ const Page: React.FC<PageProps> = ({ titleBar, children }) => {
   const [sideBarOpen, setSideBarOpen] = useState<boolean>(false);
   const hiddenClasses = sideBarOpen ? "left-0" : "-left-64";
 
-  const [groups, setGroups] = useState<Group[]>([]);
-
-  useEffect(() => {
-    async function getGrps() {
-      setGroups(await getGroups());
-    }
-    getGrps();
-  }, []);
-
   return (
     <div className="h-screen flex bg-gray-50">
       <SideBar
-        groups={groups}
         onCloseClick={() => setSideBarOpen(false)}
         className={hiddenClasses}
       />
