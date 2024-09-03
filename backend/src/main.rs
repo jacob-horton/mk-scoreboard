@@ -3,10 +3,11 @@ use std::{env, sync::Arc};
 use actix_cors::Cors;
 use actix_web::{http, web::Data, App, HttpServer};
 use routes::games::{add_game, get_previous_players};
-use routes::groups::{get_group, get_group_badges, get_group_stats, list_groups, list_players};
-use routes::players::{
-    head_to_head, head_to_head_history, player_best_streak, player_history, player_name,
+use routes::groups::{
+    get_group, get_group_badges, get_group_stats, head_to_head, head_to_head_history, list_groups,
+    list_players,
 };
+use routes::players::{player_best_streak, player_history, player_name};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 mod routes;

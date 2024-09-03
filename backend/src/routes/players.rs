@@ -6,7 +6,6 @@ use actix_web::{
 use chrono::{serde::ts_seconds_option, DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-use urlencoding::decode;
 
 use crate::{utils::modify_birthday, AppState};
 
