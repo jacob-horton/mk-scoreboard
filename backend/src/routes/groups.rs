@@ -5,7 +5,6 @@ use actix_web::{
     web::{self, Data, Path, Query},
     HttpResponse, Responder,
 };
-use chrono::NaiveDate;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
@@ -13,7 +12,7 @@ use urlencoding::decode;
 
 use crate::{
     routes::players::{Player, PlayerStats},
-    utils::{modify_birthday, std_dev},
+    utils::std_dev,
     AppState,
 };
 
@@ -115,7 +114,6 @@ pub async fn get_group_stats(
             game_score.player_id as player_id,
             game_score.game_id as game_id, 
             player.name as player_name,
-            player.birthday as "birthday: NaiveDate",
             game_score.score as points
         FROM player
         INNER JOIN game_score ON game_score.player_id = player.id
@@ -164,7 +162,7 @@ pub async fn get_group_stats(
 
         let player = players.entry(player_game.player_id).or_insert(PlayerStats {
             id: player_game.player_id,
-            name: modify_birthday(&player_game.player_name, &player_game.birthday),
+            name: player_game.player_name,
             points: 0,
             wins: 0,
             games: 0,
@@ -203,7 +201,7 @@ pub async fn list_players(data: Data<AppState>, path: web::Path<i32>) -> impl Re
     let group_id = path.into_inner();
 
     let players = sqlx::query!(
-        r#"SELECT player.id as id, name, birthday as "birthday: NaiveDate"
+        r#"SELECT player.id as id, name
         FROM player
         INNER JOIN player_group
             ON player.id = player_group.player_id
@@ -218,7 +216,7 @@ pub async fn list_players(data: Data<AppState>, path: web::Path<i32>) -> impl Re
         players
             .into_iter()
             .map(|p| Player {
-                name: modify_birthday(&p.name, &p.birthday),
+                name: p.name,
                 id: p.id,
             })
             .collect::<Vec<_>>(),
@@ -363,8 +361,7 @@ pub async fn head_to_head_history(
         "SELECT      
             game_score.player_id as player_id,
             player.name as player_name,
-            game_score.score as points,
-            player.birthday as player_birthday
+            game_score.score as points
         FROM game_score
         INNER JOIN player
 	        ON player.id = game_score.player_id
@@ -455,7 +452,6 @@ pub async fn head_to_head(
             game_score.player_id as player_id,
             game_score.game_id as game_id, 
             player.name as player_name,
-            player.birthday as "birthday: NaiveDate",
             game_score.score as points
         FROM game_score
         INNER JOIN player
@@ -489,7 +485,7 @@ pub async fn head_to_head(
     for player_game in player_games {
         let player = players.entry(player_game.player_id).or_insert(PlayerStats {
             id: player_game.player_id,
-            name: modify_birthday(&player_game.player_name, &player_game.birthday),
+            name: player_game.player_name,
             points: 0,
             wins: 0,
             games: 0,

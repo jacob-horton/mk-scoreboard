@@ -7,15 +7,11 @@ import store from "store2";
 
 const Settings = () => {
   const [playerName, setPlayerName] = useState<string>("");
-  const [birthday, setBirthday] = useState<string>("");
 
   const handleCreatePlayer = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
 
-    const body = {
-      name: playerName,
-      birthday: birthday.trim() === "" ? null : birthday,
-    }
+    const body = { name: playerName }
 
     const apiAddr = getApiAddr();
     const url = new URL(`${apiAddr}/player`);
@@ -31,7 +27,6 @@ const Settings = () => {
     }
 
     setPlayerName("");
-    setBirthday("");
   }
 
   const [groupName, setGroupName] = useState<string>("");
@@ -78,19 +73,10 @@ const Settings = () => {
             <label>Name</label>
             <input
               className="bg-gray-300 p-2 rounded-lg"
-              placeholder="Name"
+              placeholder="e.g. John Smith"
               required={true}
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col">
-            <label>Birthday</label>
-            <input
-              className="bg-gray-300 p-2 rounded-lg"
-              type="date"
-              value={birthday}
-              onChange={(e) => setBirthday(e.target.value)}
             />
           </div>
 
@@ -108,7 +94,7 @@ const Settings = () => {
             <label>Name</label>
             <input
               className="bg-gray-300 p-2 rounded-lg"
-              placeholder="Name"
+              placeholder="e.g. Switch"
               required={true}
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
