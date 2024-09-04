@@ -7,6 +7,11 @@ async fn get_server_ip() -> Result<String, Error> {
 }
 
 pub async fn is_authorised(remote_addr: Option<&str>) -> Result<bool, Error> {
+    // Authorise on local
+    if remote_addr == Some("127.0.0.1") {
+        return Ok(true);
+    }
+
     let server_ip = get_server_ip().await?;
     return Ok(Some(server_ip.as_str()) == remote_addr);
 }

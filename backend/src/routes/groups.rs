@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use actix_web::{
     delete, get, post,
     web::{self, Data, Path, Query},
-    HttpResponse, Responder,
+    HttpRequest, HttpResponse, Responder,
 };
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -16,6 +16,7 @@ use crate::{
     AppState,
 };
 
+use super::auth::is_authorised;
 use super::players::get_player_history;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -73,7 +74,14 @@ pub struct CreateGroupData {
 pub async fn create_group(
     data: Data<AppState>,
     payload: web::Json<CreateGroupData>,
+    req: HttpRequest,
 ) -> impl Responder {
+    let conn_info = req.connection_info();
+    let client_remote_ip = conn_info.realip_remote_addr();
+    if !is_authorised(client_remote_ip).await.unwrap() {
+        return HttpResponse::Unauthorized().body("Not authorised to make this request");
+    }
+
     let group = sqlx::query!(
         r#"INSERT INTO grp (name, max_score)
         VALUES ($1, $2)
@@ -519,7 +527,14 @@ pub async fn head_to_head(
 pub async fn add_player_to_group(
     data: Data<AppState>,
     path: web::Path<(i32, i32)>,
+    req: HttpRequest,
 ) -> impl Responder {
+    let conn_info = req.connection_info();
+    let client_remote_ip = conn_info.realip_remote_addr();
+    if !is_authorised(client_remote_ip).await.unwrap() {
+        return HttpResponse::Unauthorized().body("Not authorised to make this request");
+    }
+
     let (group_id, player_id) = path.into_inner();
     sqlx::query!(
         "INSERT INTO player_group (player_id, group_id) VALUES ($1, $2)",
@@ -530,14 +545,21 @@ pub async fn add_player_to_group(
     .await
     .unwrap();
 
-    HttpResponse::NoContent()
+    HttpResponse::NoContent().finish()
 }
 
 #[delete("/group/{group_id}/player/{player_id}")]
 pub async fn remove_player_from_group(
     data: Data<AppState>,
     path: web::Path<(i32, i32)>,
+    req: HttpRequest,
 ) -> impl Responder {
+    let conn_info = req.connection_info();
+    let client_remote_ip = conn_info.realip_remote_addr();
+    if !is_authorised(client_remote_ip).await.unwrap() {
+        return HttpResponse::Unauthorized().body("Not authorised to make this request");
+    }
+
     let (group_id, player_id) = path.into_inner();
     sqlx::query!(
         "DELETE FROM player_group WHERE player_id = $1 AND group_id = $2",
@@ -548,5 +570,5 @@ pub async fn remove_player_from_group(
     .await
     .unwrap();
 
-    HttpResponse::NoContent()
+    HttpResponse::NoContent().finish()
 }

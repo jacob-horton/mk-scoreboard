@@ -1,13 +1,15 @@
 use actix_web::{
     get, post,
     web::{self, Data, Query},
-    HttpResponse, Responder,
+    HttpRequest, HttpResponse, Responder,
 };
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{Error, PgPool};
 
 use crate::AppState;
+
+use super::auth::is_authorised;
 
 #[get("/players")]
 pub async fn list_all_players(data: Data<AppState>) -> impl Responder {
@@ -200,7 +202,14 @@ pub struct CreatePlayerData {
 pub async fn create_player(
     data: Data<AppState>,
     payload: web::Json<CreatePlayerData>,
+    req: HttpRequest,
 ) -> impl Responder {
+    let conn_info = req.connection_info();
+    let client_remote_ip = conn_info.realip_remote_addr();
+    if !is_authorised(client_remote_ip).await.expect("hih") {
+        return HttpResponse::Unauthorized().body("Not authorised to make this request");
+    }
+
     let player_result = sqlx::query!(
         r#"INSERT INTO player (name)
         VALUES ($1)

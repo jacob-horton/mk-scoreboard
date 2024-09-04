@@ -5,10 +5,11 @@ use actix_web::{
     http::Error,
     post,
     web::{self, Data, Query},
-    HttpResponse, Responder,
+    HttpRequest, HttpResponse, Responder,
 };
 use serde::{Deserialize, Serialize};
 
+use super::auth::is_authorised;
 use crate::AppState;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -29,7 +30,14 @@ pub struct GameScore {
 pub async fn add_game(
     data: Data<AppState>,
     payload: web::Json<Game>,
+    req: HttpRequest,
 ) -> Result<HttpResponse, Error> {
+    let conn_info = req.connection_info();
+    let client_remote_ip = conn_info.realip_remote_addr();
+    if !is_authorised(client_remote_ip).await.unwrap() {
+        return Ok(HttpResponse::Unauthorized().body("Not authorised to make this request"));
+    }
+
     let mut transaction = data.pg_pool.begin().await.unwrap();
     sqlx::query!("INSERT INTO game (group_id) VALUES ($1);", payload.group_id)
         .execute(transaction.deref_mut())
