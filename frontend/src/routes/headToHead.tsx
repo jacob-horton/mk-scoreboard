@@ -15,7 +15,7 @@ import Page from "../components/Page";
 import { loader } from "./functions/addGame";
 import { useEffect, useState } from "react";
 import Dropdown from "../components/Dropdown";
-import { PlayerStats, getHeadToHeadStats } from "../data/playerStats";
+import { PlayerStats } from "../data/playerStats";
 import { PlayerCard } from "../components/PlayerCard";
 import HeaderBar, { Sort, getSort } from "../components/HeaderBar";
 import store from "store2";
@@ -31,13 +31,24 @@ ChartJS.register(
   Legend
 );
 
-async function getHistory(
+type HeadToHeadHistory = {
+  id: number;
+  name: string;
+  history: number[];
+}
+
+type HeadToHeadData = {
+  playerStats: PlayerStats[];
+  histories: HeadToHeadHistory[];
+}
+
+async function getHeadToHeadData(
   playerIds: number[],
   groupId: number,
   nGames?: number
-) {
+): Promise<HeadToHeadData> {
   const apiAddr = getApiAddr();
-  let url = new URL(`${apiAddr}/group/${groupId}/head_to_head_history`);
+  let url = new URL(`${apiAddr}/group/${groupId}/head_to_head`);
   url.searchParams.append("ids", playerIds.join(","));
 
   if (nGames !== undefined) {
@@ -50,19 +61,23 @@ async function getHistory(
       throw new Error(response.statusText);
     }
 
-    // TODO: Make type
-    return response
-      .json()
-      .then(
-        (data) => data as { id: number; name: string; history: number[] }[]
-      );
+    return response.json().then((data) => (
+      {
+        playerStats: data.playerStats.map((s) => ({
+          ...s,
+          winPercentage: s.wins / s.games,
+          pointsPerGame: s.points / s.games,
+        })),
+        histories: data.histories,
+      } as HeadToHeadData
+    ));
   });
 
   return points;
 }
 
 interface HeadToHeadStatsProps {
-  points: Awaited<ReturnType<typeof getHistory>>;
+  points: HeadToHeadHistory[];
   stats: (PlayerStats | null)[];
 }
 
@@ -145,27 +160,20 @@ const HeadToHead = () => {
     [...new Array(4)].map(() => null)
   );
   const [stats, setStats] = useState<PlayerStats[]>([]);
-  const [points, setPoints] = useState<Awaited<ReturnType<typeof getHistory>>>(
-    []
-  );
+  const [points, setPoints] = useState<HeadToHeadHistory[]>([]);
 
   const [numberGames, setNumberGames] = useState<NumberGames>(10);
 
   useEffect(() => {
     async function updateStats() {
-      const history = getHistory(
-        players.map((p) => p as number),
-        group.id,
-        numberGames === "All" ? undefined : numberGames
-      );
-      const stats = getHeadToHeadStats(
+      const { histories, playerStats } = await getHeadToHeadData(
         players.map((p) => p as number),
         group.id,
         numberGames === "All" ? undefined : numberGames
       );
 
-      setPoints(await history);
-      setStats(await stats);
+      setPoints(histories);
+      setStats(playerStats);
     }
 
     updateStats();

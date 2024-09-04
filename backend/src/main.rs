@@ -5,7 +5,7 @@ use actix_web::{http, web::Data, App, HttpServer};
 use routes::games::{add_game, get_previous_players};
 use routes::groups::{
     add_player_to_group, create_group, get_group, get_group_badges, get_group_stats, head_to_head,
-    head_to_head_history, list_groups, list_players, remove_player_from_group,
+    list_groups, list_players, remove_player_from_group,
 };
 use routes::players::{
     create_player, list_all_players, player_best_streak, player_history, player_name,
@@ -59,7 +59,6 @@ async fn main() -> std::io::Result<()> {
             .service(get_group_badges)
             .service(player_best_streak)
             .service(head_to_head)
-            .service(head_to_head_history)
             .service(list_all_players)
             .service(add_player_to_group)
             .service(remove_player_from_group)

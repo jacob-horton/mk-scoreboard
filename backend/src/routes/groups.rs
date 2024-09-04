@@ -326,85 +326,11 @@ pub struct HeadToHeadHistorySingle {
     history: Vec<i32>,
 }
 
-#[get("/group/{group_id}/head_to_head_history")]
-pub async fn head_to_head_history(
-    data: Data<AppState>,
-    info: Query<HeadToHeadData>,
-    path: Path<i32>,
-) -> impl Responder {
-    let group_id = path.into_inner();
-    let ids: Vec<i32> = match parse_ids(&info.ids) {
-        Ok(ids) => ids,
-        Err(_) => return HttpResponse::BadRequest().body("Could not parse ids"),
-    };
-
-    // TODO: use LIMIT for `n`?
-    let common_games = sqlx::query!(
-        "SELECT game_id
-        FROM game_score
-        INNER JOIN game ON game.id = game_score.game_id
-        WHERE player_id = ANY($1) AND game.group_id = $2
-        GROUP BY game_id
-        HAVING COUNT(DISTINCT player_id) = $3",
-        &ids,
-        group_id,
-        ids.len() as i64,
-    )
-    .fetch_all(data.pg_pool.as_ref())
-    .await
-    .unwrap()
-    .iter()
-    .map(|x| x.game_id)
-    .collect_vec();
-
-    let player_games = sqlx::query!(
-        "SELECT      
-            game_score.player_id as player_id,
-            player.name as player_name,
-            game_score.score as points
-        FROM game_score
-        INNER JOIN player
-	        ON player.id = game_score.player_id
-        INNER JOIN game
-            ON game.id = game_score.game_id
-        WHERE player.id = ANY($1) AND game_id = ANY($2)
-        ORDER BY date DESC",
-        &ids,
-        &common_games
-    )
-    .fetch_all(data.pg_pool.as_ref())
-    .await
-    .unwrap();
-
-    let mut players: HashMap<i32, HeadToHeadHistorySingle> = HashMap::with_capacity(2);
-
-    for game in player_games {
-        let player = players
-            .entry(game.player_id)
-            .or_insert(HeadToHeadHistorySingle {
-                id: game.player_id,
-                name: game.player_name,
-                history: Vec::new(),
-            });
-
-        if let Some(n) = info.n {
-            if player.history.len() as i32 >= n {
-                continue;
-            }
-        }
-
-        player.history.push(game.points);
-    }
-
-    let mut response = players
-        .into_values()
-        .map(|x| HeadToHeadHistorySingle {
-            history: x.history.into_iter().rev().collect_vec(),
-            ..x
-        })
-        .collect_vec();
-    response.sort_by(|a, b| a.id.cmp(&b.id));
-    HttpResponse::Ok().json(response)
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct HeadToHead {
+    player_stats: Vec<PlayerStats>,
+    histories: Vec<HeadToHeadHistorySingle>,
 }
 
 fn parse_ids(ids: &str) -> Result<Vec<i32>, ()> {
@@ -417,37 +343,39 @@ fn parse_ids(ids: &str) -> Result<Vec<i32>, ()> {
         .map_err(|_| ())
 }
 
-#[get("/group/{group_id}/head_to_head")]
-pub async fn head_to_head(
-    data: Data<AppState>,
-    info: Query<HeadToHeadData>,
-    path: Path<i32>,
-) -> impl Responder {
-    let group_id = path.into_inner();
-    let ids: Vec<i32> = match parse_ids(&info.ids) {
-        Ok(ids) => ids,
-        Err(_) => return HttpResponse::BadRequest().body("Could not parse ids"),
-    };
+struct CommonPlayerGame {
+    player_id: i32,
+    game_id: i32,
+    player_name: String,
+    points: i32,
+}
 
-    let common_games = sqlx::query!(
+async fn get_common_player_games(
+    ids: &[i32],
+    group_id: i32,
+    pool: &PgPool,
+) -> Vec<CommonPlayerGame> {
+    // TODO: use LIMIT for `n`?
+    let common_game_ids = sqlx::query!(
         "SELECT game_id
         FROM game_score
         INNER JOIN game ON game.id = game_score.game_id
         WHERE player_id = ANY($1) AND game.group_id = $2
         GROUP BY game_id
         HAVING COUNT(DISTINCT player_id) = $3",
-        &ids,
+        ids,
         group_id,
         ids.len() as i64,
     )
-    .fetch_all(data.pg_pool.as_ref())
+    .fetch_all(pool)
     .await
     .unwrap()
     .iter()
     .map(|x| x.game_id)
     .collect_vec();
 
-    let player_games = sqlx::query!(
+    let common_games = sqlx::query_as!(
+        CommonPlayerGame,
         r#"SELECT
             game_score.player_id as player_id,
             game_score.game_id as game_id, 
@@ -455,18 +383,26 @@ pub async fn head_to_head(
             game_score.score as points
         FROM game_score
         INNER JOIN player
-	        ON player.id = game_score.player_id
+            ON player.id = game_score.player_id
         INNER JOIN game
             ON game.id = game_score.game_id
         WHERE player.id = ANY($1) AND game_id = ANY($2)
         ORDER BY date DESC"#,
         &ids,
-        &common_games
+        &common_game_ids
     )
-    .fetch_all(data.pg_pool.as_ref())
+    .fetch_all(pool)
     .await
     .unwrap();
 
+    return common_games;
+}
+
+async fn get_head_to_head_stats(
+    common_games: &[CommonPlayerGame],
+    number_games: Option<i32>,
+    pool: &PgPool,
+) -> Vec<PlayerStats> {
     // Highest score for each game
     let games = sqlx::query!(
         "SELECT game.id, MAX(game_score.score) as max_score
@@ -474,7 +410,7 @@ pub async fn head_to_head(
         INNER JOIN game_score ON game.id = game_score.game_id
         GROUP BY game.id"
     )
-    .fetch_all(data.pg_pool.as_ref())
+    .fetch_all(pool)
     .await
     .unwrap();
 
@@ -482,10 +418,10 @@ pub async fn head_to_head(
 
     // Player ID to stats
     let mut players: HashMap<i32, PlayerStats> = HashMap::new();
-    for player_game in player_games {
+    for player_game in common_games {
         let player = players.entry(player_game.player_id).or_insert(PlayerStats {
             id: player_game.player_id,
-            name: player_game.player_name,
+            name: player_game.player_name.clone(),
             points: 0,
             wins: 0,
             games: 0,
@@ -493,7 +429,7 @@ pub async fn head_to_head(
         });
 
         // Skip if already got the n games
-        if let Some(n) = info.n {
+        if let Some(n) = number_games {
             if player.games >= n {
                 continue;
             }
@@ -516,7 +452,67 @@ pub async fn head_to_head(
         })
         .collect_vec();
 
-    HttpResponse::Ok().json(values)
+    return values;
+}
+
+fn get_head_to_head_histories(
+    common_games: &[CommonPlayerGame],
+    number_games: Option<i32>,
+) -> Vec<HeadToHeadHistorySingle> {
+    let mut players: HashMap<i32, HeadToHeadHistorySingle> = HashMap::with_capacity(2);
+    for game in common_games {
+        let player = players
+            .entry(game.player_id)
+            .or_insert(HeadToHeadHistorySingle {
+                id: game.player_id,
+                name: game.player_name.clone(),
+                history: Vec::new(),
+            });
+
+        if let Some(n) = number_games {
+            if player.history.len() as i32 >= n {
+                continue;
+            }
+        }
+
+        player.history.push(game.points);
+    }
+
+    // Reverse history
+    let mut history = players
+        .into_values()
+        .map(|x| HeadToHeadHistorySingle {
+            history: x.history.into_iter().rev().collect_vec(),
+            ..x
+        })
+        .collect_vec();
+
+    history.sort_by(|a, b| a.id.cmp(&b.id));
+    return history;
+}
+
+#[get("/group/{group_id}/head_to_head")]
+pub async fn head_to_head(
+    data: Data<AppState>,
+    info: Query<HeadToHeadData>,
+    path: Path<i32>,
+) -> impl Responder {
+    let group_id = path.into_inner();
+    let ids: Vec<i32> = match parse_ids(&info.ids) {
+        Ok(ids) => ids,
+        Err(_) => return HttpResponse::BadRequest().body("Could not parse ids"),
+    };
+
+    let common_games = get_common_player_games(&ids, group_id, data.pg_pool.as_ref()).await;
+    let stats = get_head_to_head_stats(&common_games, info.n, data.pg_pool.as_ref()).await;
+    let histories = get_head_to_head_histories(&common_games, info.n);
+
+    let response = HeadToHead {
+        histories,
+        player_stats: stats,
+    };
+
+    HttpResponse::Ok().json(response)
 }
 
 #[post("/group/{group_id}/player/{player_id}")]

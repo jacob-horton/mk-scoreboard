@@ -10,38 +10,6 @@ export interface PlayerStats {
   winPercentage: number;
 }
 
-export async function getHeadToHeadStats(
-  playerIds: number[],
-  groupId: number,
-  nGames?: number,
-): Promise<PlayerStats[]> {
-  const apiAddr = getApiAddr();
-  const url = new URL(`${apiAddr}/group/${groupId}/head_to_head`);
-  url.searchParams.append("ids", playerIds.join(","));
-
-  if (nGames !== undefined) {
-    url.searchParams.append("n", nGames.toString());
-  }
-
-  return fetch(url).then(async (response) => {
-    if (!response.ok) {
-      console.log("nope");
-      throw new Error(response.statusText);
-    }
-
-    return response.json().then((data) =>
-      data.map(
-        (d) =>
-          ({
-            ...d,
-            winPercentage: d.wins / d.games,
-            pointsPerGame: d.points / d.games,
-          }) as PlayerStats,
-      ),
-    );
-  });
-}
-
 export async function getPlayerStats(
   groupId: number,
   nGames: number | null,
