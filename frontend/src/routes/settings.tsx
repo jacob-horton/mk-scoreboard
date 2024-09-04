@@ -5,6 +5,7 @@ import getApiAddr from "../data/ip";
 import IntTextBox from "../components/IntTextBox";
 import store from "store2";
 import { GroupsContext } from "../components/GroupsProvider";
+import { AuthContext } from "../components/AuthProvider";
 
 const Settings = () => {
   const [playerName, setPlayerName] = useState<string>("");
@@ -66,10 +67,12 @@ const Settings = () => {
     _setGraphTension(tension);
   }
 
+  const auth = useContext(AuthContext);
+
   return (
     <Page titleBar={<h1 className="text-4xl font-light">Settings</h1>}>
       <div className="max-w-72 px-4 sm:px-0 space-y-16">
-        <Form onSubmit={handleCreatePlayer} className="space-y-4">
+        {auth.isAuthenticated && <Form onSubmit={handleCreatePlayer} className="space-y-4">
           <h2 className="text-xl text-gray-800">Create Player</h2>
           <div className="flex flex-col">
             <label>Name</label>
@@ -88,9 +91,9 @@ const Settings = () => {
           >
             Submit
           </button>
-        </Form>
+        </Form>}
 
-        <Form onSubmit={handleCreateGroup} className="space-y-4">
+        {auth.isAuthenticated && <Form onSubmit={handleCreateGroup} className="space-y-4">
           <h2 className="text-xl text-gray-800">Create Group</h2>
           <div className="flex flex-col">
             <label>Name</label>
@@ -113,8 +116,7 @@ const Settings = () => {
           >
             Submit
           </button>
-        </Form>
-
+        </Form>}
 
         <div>
           <h2 className="text-xl text-gray-800">Other Settings</h2>

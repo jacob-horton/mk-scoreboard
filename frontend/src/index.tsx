@@ -10,7 +10,8 @@ import ItemGenerator from "./routes/itemGenerator.tsx";
 import HeadToHead from "./routes/headToHead.tsx";
 import Settings from "./routes/settings.tsx";
 import { GroupsProvider } from "./components/GroupsProvider.tsx";
-import AddPlayerToGroup from "./routes/addPlayerToGroup.tsx";
+import { AuthProvider } from "./components/AuthProvider.tsx";
+import ModifyPlayers from "./routes/modifyPlayers.tsx";
 import HomePage from "./routes/homePage.tsx";
 
 const router = createBrowserRouter([
@@ -45,7 +46,7 @@ const router = createBrowserRouter([
       },
       {
         path: "groups/:groupId/add_player",
-        element: <AddPlayerToGroup />,
+        element: <ModifyPlayers />,
         loader: gameLoader,
       },
       {
@@ -63,9 +64,11 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <GroupsProvider>
-      <div className="h-full">
-        <RouterProvider router={router} />
-      </div>
+      <AuthProvider>
+        <div className="h-full">
+          <RouterProvider router={router} />
+        </div>
+      </AuthProvider>
     </GroupsProvider>
   </React.StrictMode>
 );

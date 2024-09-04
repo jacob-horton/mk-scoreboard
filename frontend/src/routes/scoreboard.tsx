@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { PlayerCardWithChange } from "../components/PlayerCard";
 import {
   PlayerStats,
@@ -12,6 +12,7 @@ import Page from "../components/Page";
 import HeaderBar, { Sort, getSort } from "../components/HeaderBar";
 import NumberGamesSelector, { NumberGames } from "../components/NumberGames";
 import store from "store2";
+import { AuthContext } from "../components/AuthProvider";
 
 export async function loader({ params }: { params: { groupId: string } }) {
   const apiAddr = getApiAddr();
@@ -117,6 +118,8 @@ const Scoreboard = () => {
     setDetailedPlayerStats(comparisonStats);
   }, [playerStats, prevPlayerStats, sort]);
 
+  const auth = useContext(AuthContext);
+
   return (
     <Page
       titleBar={
@@ -149,24 +152,24 @@ const Scoreboard = () => {
       </div>
 
       <div className="fixed bottom-0 right-0 pr-4 pb-4 space-x-4">
-        <Link
+        {auth.isAuthenticated && <Link
           className="px-4 py-2 rounded-lg transition bg-gray-200 hover:bg-gray-300 whitespace-nowrap"
           to={`/groups/${groupId}/add_player`}
         >
           Modify Players
-        </Link>
+        </Link>}
         <Link
           className="px-4 py-2 rounded-lg transition bg-gray-200 hover:bg-gray-300 whitespace-nowrap"
           to={`/groups/${groupId}/head_to_head`}
         >
           Head to Head
         </Link>
-        <Link
+        {auth.isAuthenticated && <Link
           className="px-4 py-2 rounded-lg transition bg-blue-500 text-white hover:bg-blue-400 whitespace-nowrap"
           to={`/groups/${groupId}/add-game`}
         >
           + New Game
-        </Link>
+        </Link>}
       </div>
     </Page>
   );
