@@ -6,12 +6,12 @@ import Scoreboard, { loader as groupLoader } from "./routes/scoreboard.tsx";
 import AddGame from "./routes/addGame.tsx";
 import { loader as gameLoader } from "./routes/functions/addGame.tsx";
 import Graph, { loader as graphLoader } from "./routes/graph.tsx";
-import Page from "./components/Page.tsx";
 import ItemGenerator from "./routes/itemGenerator.tsx";
 import HeadToHead from "./routes/headToHead.tsx";
 import Settings from "./routes/settings.tsx";
 import { GroupsProvider } from "./components/GroupsProvider.tsx";
 import AddPlayerToGroup from "./routes/addPlayerToGroup.tsx";
+import HomePage from "./routes/homePage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -21,21 +21,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "",
-        element: (
-          <Page
-            titleBar={
-              <h1 className="grow text-center text-4xl font-light">
-                Welcome to Mario Kart Scoreboards!
-              </h1>
-            }
-          >
-            <div className="flex grow pt-8 flex-col space-y-4">
-              <p className="grow text-center">
-                Please create or select a group to get started
-              </p>
-            </div>
-          </Page>
-        ),
+        element: <HomePage />,
       },
       {
         path: "groups/:groupId/scoreboard",

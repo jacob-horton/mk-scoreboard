@@ -11,10 +11,13 @@ import { Badges, Group, noBadges } from "../data/types";
 import Page from "../components/Page";
 import HeaderBar, { Sort, getSort } from "../components/HeaderBar";
 import NumberGamesSelector, { NumberGames } from "../components/NumberGames";
+import store from "store2";
 
 export async function loader({ params }: { params: { groupId: string } }) {
   const apiAddr = getApiAddr();
   const url = new URL(`${apiAddr}/group/${params.groupId}`);
+
+  store.set('lastGroup', params.groupId);
 
   return fetch(url).then(async (response) => {
     if (!response.ok) {
