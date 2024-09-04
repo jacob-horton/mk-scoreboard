@@ -1,4 +1,3 @@
-use std::sync::Mutex;
 use std::{env, sync::Arc};
 
 use actix_cors::Cors;
@@ -35,9 +34,9 @@ async fn main() -> std::io::Result<()> {
     );
 
     HttpServer::new(move || {
-        // TODO: properly configure cors
         let cors = Cors::default()
-            .allow_any_origin()
+            .allowed_origin("https://mariokart.cc")
+            .allowed_origin("http://localhost:5173")
             .allowed_methods(vec!["GET", "POST", "DELETE"])
             .allowed_header(http::header::CONTENT_TYPE);
 
