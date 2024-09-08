@@ -18,8 +18,7 @@ struct Claims {
 pub async fn is_authorised(token: &str) -> bool {
     decode::<Claims>(
         token,
-        // TODO: secret
-        &DecodingKey::from_secret("secret".as_ref()),
+        &DecodingKey::from_secret(include_bytes!("../jwt_secret.dat")),
         &Validation::default(),
     )
     .is_ok()
@@ -60,8 +59,7 @@ pub async fn login(data: Data<AppState>, info: web::Json<AuthData>) -> impl Resp
     let token = encode(
         &Header::default(),
         &claims,
-        // TODO: secret
-        &EncodingKey::from_secret("secret".as_ref()),
+        &EncodingKey::from_secret(include_bytes!("../jwt_secret.dat")),
     )
     .unwrap();
 

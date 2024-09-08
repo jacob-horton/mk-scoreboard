@@ -74,6 +74,13 @@ cd ./frontend
 yarn
 ```
 
+### Backend
+
+Generate a random secret for validating JWTs:
+```bash
+dd if=/dev/urandom bs=256 count=1 2>/dev/null > ./backend/src/api/jwt_secret.dat
+```
+
 ---
 
 ## Running

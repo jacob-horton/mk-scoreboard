@@ -47,3 +47,4 @@ sketch
 .env.prod
 db-data
 **/target
+/backend/src/api/jwt_secret.dat
