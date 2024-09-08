@@ -1,9 +1,11 @@
-import { createContext, useState } from "react";
+import { createContext, useMemo, useState } from "react";
 import getApiAddr from "../data/ip";
+import store from "store2";
+import { jwtDecode } from "jwt-decode";
 
 function getStoredJwt(): string | null {
-  // TODO: local storage
-  return null;
+  return store.get("jwt");
+  ;
 }
 
 async function authenticate(name: string, password: string): Promise<string> {
@@ -32,20 +34,29 @@ const AuthContext = createContext<{
   authenticate: (name: string, password: string) => Promise<boolean>,
   logout: () => void
   jwt: string | null,
+  username: string | null,
 }>({
   isAuthenticated: false,
   authenticate: (_: string, __: string) => new Promise(() => false),
   logout: () => { },
   jwt: null,
+  username: null,
 });
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [jwt, setJwt] = useState<string | null>(getStoredJwt());
+  const username = useMemo(() => {
+    if (!jwt) {
+      return null;
+    }
+
+    return jwtDecode(jwt).sub ?? null;
+  }, [jwt]);
 
   const authenticateAndUpdate = async (name: string, password: string) => {
     try {
       const jwt = await authenticate(name, password);
-      // TODO: save to localstorage
+      store.set("jwt", jwt);
       setJwt(jwt);
 
       return true;
@@ -55,7 +66,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const logout = async () => {
-    // TODO: clear localstorage
+    store.remove("jwt");
     setJwt(null);
   }
 
@@ -65,6 +76,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       authenticate: authenticateAndUpdate,
       logout,
       jwt,
+      username
     }}>
       {children}
     </AuthContext.Provider>

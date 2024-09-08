@@ -9,7 +9,7 @@ import { AuthContext } from "../components/AuthProvider";
 
 const Settings = () => {
   const apiAddr = getApiAddr();
-  const { isAuthenticated, authenticate, logout, jwt } = useContext(AuthContext);
+  const { isAuthenticated, authenticate, logout, jwt, username } = useContext(AuthContext);
 
   // Add player
   const [playerName, setPlayerName] = useState<string>("");
@@ -141,9 +141,15 @@ const Settings = () => {
           <h2 className="text-xl text-gray-800">Account</h2>
           {
             isAuthenticated
-              ? <button onClick={logout}>Logout</button>
-              : <form onSubmit={handleLogin}>
-                <div>
+              ? <div className="space-y-2">
+                <p>Logged in as {username}</p>
+                <button
+                  className="px-4 py-2 rounded-lg transition bg-blue-500 text-white hover:bg-blue-400"
+                  onClick={logout}
+                >Logout</button>
+              </div>
+              : <form onSubmit={handleLogin} className="space-y-2">
+                <div className="flex flex-col">
                   <label>Name</label>
                   <input
                     name="name"
@@ -153,7 +159,9 @@ const Settings = () => {
                     value={userName}
                     onChange={(e) => setUserName(e.target.value)}
                   />
+                </div>
 
+                <div className="flex flex-col">
                   <label>Password</label>
                   <input
                     name="password"
