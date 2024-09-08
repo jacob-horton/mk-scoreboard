@@ -26,11 +26,14 @@ async function addPlayerToGroup(jwt: string | null, groupId: number, playerId: n
   });
 }
 
-async function removePlayerFromGroup(groupId: number, playerId: number) {
+async function removePlayerFromGroup(jwt: string | null, groupId: number, playerId: number) {
   const apiAddr = getApiAddr();
   const url = new URL(`${apiAddr}/group/${groupId}/player/${playerId}`);
 
-  await fetch(url, { method: "DELETE" });
+  await fetch(url, {
+    method: "DELETE",
+    headers: { "Authorization": `Bearer ${jwt}` },
+  });
 }
 
 const AddPlayerToGroup = () => {
@@ -38,6 +41,8 @@ const AddPlayerToGroup = () => {
   const [playersInGroup, setPlayersInGroup] = useState<Player[]>(initialPlayersInGroup);
 
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
+
+  const { jwt } = useContext(AuthContext);
 
   useEffect(() => {
     getAllPlayers().then((players) => setAllPlayers(players));
@@ -49,10 +54,9 @@ const AddPlayerToGroup = () => {
 
   const handleAddPlayerToGroup = (p: Player) => {
     setPlayersInGroup((players) => players.filter((player) => player.id !== p.id))
-    removePlayerFromGroup(group.id, p.id);
+    removePlayerFromGroup(jwt, group.id, p.id);
   }
 
-  const { jwt } = useContext(AuthContext);
   const handleRemovePlayerFromGroup = (p: Player) => {
     setPlayersInGroup((players) => [...players, p]);
     addPlayerToGroup(jwt, group.id, p.id);
