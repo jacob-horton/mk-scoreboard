@@ -2,8 +2,9 @@ import { useLoaderData } from "react-router-dom";
 import Page from "../components/Page";
 import { loader } from "./functions/addGame";
 import getApiAddr from "../data/ip";
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { Player } from "../data/types";
+import { AuthContext } from "../components/AuthProvider";
 
 async function getAllPlayers() {
   const apiAddr = getApiAddr();
@@ -15,11 +16,14 @@ async function getAllPlayers() {
   return body as Player[];
 }
 
-async function addPlayerToGroup(groupId: number, playerId: number) {
+async function addPlayerToGroup(jwt: string | null, groupId: number, playerId: number) {
   const apiAddr = getApiAddr();
   const url = new URL(`${apiAddr}/group/${groupId}/player/${playerId}`);
 
-  await fetch(url, { method: "POST" });
+  await fetch(url, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${jwt}` },
+  });
 }
 
 async function removePlayerFromGroup(groupId: number, playerId: number) {
@@ -48,9 +52,10 @@ const AddPlayerToGroup = () => {
     removePlayerFromGroup(group.id, p.id);
   }
 
+  const { jwt } = useContext(AuthContext);
   const handleRemovePlayerFromGroup = (p: Player) => {
     setPlayersInGroup((players) => [...players, p]);
-    addPlayerToGroup(group.id, p.id);
+    addPlayerToGroup(jwt, group.id, p.id);
   }
 
   return (

@@ -1,8 +1,9 @@
 use actix_web::{
     get, post,
     web::{self, Data, Query},
-    HttpRequest, HttpResponse, Responder,
+    HttpResponse, Responder,
 };
+use actix_web_httpauth::extractors::bearer::BearerAuth;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::{Error, PgPool};
@@ -202,11 +203,9 @@ pub struct CreatePlayerData {
 pub async fn create_player(
     data: Data<AppState>,
     payload: web::Json<CreatePlayerData>,
-    req: HttpRequest,
+    auth: BearerAuth,
 ) -> impl Responder {
-    let conn_info = req.connection_info();
-    let client_remote_ip = conn_info.realip_remote_addr();
-    if !is_authorised(client_remote_ip).await.expect("hih") {
+    if !is_authorised(auth.token()).await {
         return HttpResponse::Unauthorized().body("Not authorised to make this request");
     }
 

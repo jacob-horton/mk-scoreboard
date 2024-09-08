@@ -1,32 +1,71 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useState } from "react";
 import getApiAddr from "../data/ip";
 
-async function getIsAuthenticated(): Promise<{ isAuthed: boolean, requestSucceeded: boolean }> {
-  const apiAddr = getApiAddr();
-  const resp = await fetch(`${apiAddr}/auth`);
-
-  // If 500 or above, ignore response - retry
-  return { isAuthed: resp.ok, requestSucceeded: resp.status < 500 };
+function getStoredJwt(): string | null {
+  // TODO: local storage
+  return null;
 }
 
-const AuthContext = createContext<
-  { isAuthenticated: boolean }
->({ isAuthenticated: false });
+async function authenticate(name: string, password: string): Promise<string> {
+  const body = {
+    name,
+    password,
+  };
+
+  const apiAddr = getApiAddr();
+  const url = new URL(`${apiAddr}/auth`);
+  const resp = await fetch(url, {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!resp.ok) {
+    throw new Error('Failed to authenticate');
+  }
+
+  return await resp.text();
+}
+
+const AuthContext = createContext<{
+  isAuthenticated: boolean,
+  authenticate: (name: string, password: string) => Promise<boolean>,
+  logout: () => void
+  jwt: string | null,
+}>({
+  isAuthenticated: false,
+  authenticate: (_: string, __: string) => new Promise(() => false),
+  logout: () => { },
+  jwt: null,
+});
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setAuthenticated] = useState<boolean>(false);
+  const [jwt, setJwt] = useState<string | null>(getStoredJwt());
 
-  // Load auth on first load
-  useEffect(() => {
-    getIsAuthenticated().then((auth) => {
-      if (auth.requestSucceeded) {
-        setAuthenticated(auth.isAuthed);
-      }
-    });
-  }, []);
+  const authenticateAndUpdate = async (name: string, password: string) => {
+    try {
+      const jwt = await authenticate(name, password);
+      // TODO: save to localstorage
+      setJwt(jwt);
+
+      return true;
+    } catch (Error) {
+      return false;
+    }
+  }
+
+  const logout = async () => {
+    // TODO: clear localstorage
+    setJwt(null);
+  }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated }}>
+    <AuthContext.Provider value={{
+      isAuthenticated: !!jwt,
+      authenticate: authenticateAndUpdate,
+      logout,
+      jwt,
+    }}>
       {children}
     </AuthContext.Provider>
   );

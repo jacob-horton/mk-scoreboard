@@ -5,8 +5,9 @@ use actix_web::{
     http::Error,
     post,
     web::{self, Data, Query},
-    HttpRequest, HttpResponse, Responder,
+    HttpResponse, Responder,
 };
+use actix_web_httpauth::extractors::bearer::BearerAuth;
 use serde::{Deserialize, Serialize};
 
 use super::auth::is_authorised;
@@ -30,11 +31,9 @@ pub struct GameScore {
 pub async fn add_game(
     data: Data<AppState>,
     payload: web::Json<Game>,
-    req: HttpRequest,
+    auth: BearerAuth,
 ) -> Result<HttpResponse, Error> {
-    let conn_info = req.connection_info();
-    let client_remote_ip = conn_info.realip_remote_addr();
-    if !is_authorised(client_remote_ip).await.unwrap() {
+    if !is_authorised(auth.token()).await {
         return Ok(HttpResponse::Unauthorized().body("Not authorised to make this request"));
     }
 

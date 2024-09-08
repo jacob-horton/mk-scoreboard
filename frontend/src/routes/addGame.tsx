@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import PlayerScoreInput from "../components/PlayerScoreInput";
 import { Form, useLoaderData, useNavigate } from "react-router-dom";
 import Page from "../components/Page";
 import { PlayerScore, canSubmit, loader } from "./functions/addGame";
 import getApiAddr from "../data/ip";
+import { AuthContext } from "../components/AuthProvider";
 
 const AddGame = () => {
   const { group, players } = useLoaderData() as Awaited<
@@ -16,6 +17,7 @@ const AddGame = () => {
     [...Array(numPlayers)].map(() => ({ playerId: null, score: 0 }))
   );
 
+  const { jwt } = useContext(AuthContext);
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     if (!canSubmit(playerScores, group.maxScore)) {
@@ -26,7 +28,10 @@ const AddGame = () => {
     await fetch(`${apiAddr}/game`, {
       method: "POST",
       body: JSON.stringify({ scores: playerScores, groupId: group.id }),
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${jwt}`
+      },
     });
 
     navigate(`/groups/${group.id}/scoreboard`);

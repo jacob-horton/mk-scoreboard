@@ -3,8 +3,9 @@ use std::collections::HashMap;
 use actix_web::{
     delete, get, post,
     web::{self, Data, Path, Query},
-    HttpRequest, HttpResponse, Responder,
+    HttpResponse, Responder,
 };
+use actix_web_httpauth::extractors::bearer::BearerAuth;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
@@ -74,11 +75,9 @@ pub struct CreateGroupData {
 pub async fn create_group(
     data: Data<AppState>,
     payload: web::Json<CreateGroupData>,
-    req: HttpRequest,
+    auth: BearerAuth,
 ) -> impl Responder {
-    let conn_info = req.connection_info();
-    let client_remote_ip = conn_info.realip_remote_addr();
-    if !is_authorised(client_remote_ip).await.unwrap() {
+    if !is_authorised(auth.token()).await {
         return HttpResponse::Unauthorized().body("Not authorised to make this request");
     }
 
@@ -527,11 +526,9 @@ pub async fn head_to_head(
 pub async fn add_player_to_group(
     data: Data<AppState>,
     path: web::Path<(i32, i32)>,
-    req: HttpRequest,
+    auth: BearerAuth,
 ) -> impl Responder {
-    let conn_info = req.connection_info();
-    let client_remote_ip = conn_info.realip_remote_addr();
-    if !is_authorised(client_remote_ip).await.unwrap() {
+    if !is_authorised(auth.token()).await {
         return HttpResponse::Unauthorized().body("Not authorised to make this request");
     }
 
@@ -552,11 +549,9 @@ pub async fn add_player_to_group(
 pub async fn remove_player_from_group(
     data: Data<AppState>,
     path: web::Path<(i32, i32)>,
-    req: HttpRequest,
+    auth: BearerAuth,
 ) -> impl Responder {
-    let conn_info = req.connection_info();
-    let client_remote_ip = conn_info.realip_remote_addr();
-    if !is_authorised(client_remote_ip).await.unwrap() {
+    if !is_authorised(auth.token()).await {
         return HttpResponse::Unauthorized().body("Not authorised to make this request");
     }
 

@@ -118,7 +118,7 @@ const Scoreboard = () => {
     setDetailedPlayerStats(comparisonStats);
   }, [playerStats, prevPlayerStats, sort]);
 
-  const auth = useContext(AuthContext);
+  const { isAuthenticated } = useContext(AuthContext);
 
   return (
     <Page
@@ -152,7 +152,7 @@ const Scoreboard = () => {
       </div>
 
       <div className="fixed bottom-0 right-0 pr-4 pb-4 h-fit gap-x-4 gap-y-2 flex flex-col sm:flex-row">
-        {auth.isAuthenticated && <Link
+        {isAuthenticated && <Link
           className="px-4 py-2 rounded-lg transition bg-gray-200 hover:bg-gray-300 whitespace-nowrap h-fit"
           to={`/groups/${groupId}/add_player`}
         >
@@ -164,7 +164,7 @@ const Scoreboard = () => {
         >
           Head to Head
         </Link>
-        {auth.isAuthenticated && <Link
+        {isAuthenticated && <Link
           className="px-4 py-2 rounded-lg transition bg-blue-500 text-white hover:bg-blue-400 whitespace-nowrap"
           to={`/groups/${groupId}/add-game`}
         >

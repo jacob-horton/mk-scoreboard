@@ -87,7 +87,7 @@ docker-compose up -d
 Run the backend:
 ```bash
 cd backend
-cargo run # Or use `cargo watch -x run` to rebuild/run on file changes
+cargo run --bin api # Or use `cargo watch -x 'run --bin api'` to rebuild/run on file changes
 ```
 
 Run the frontend:
@@ -97,3 +97,11 @@ yarn dev
 ```
 
 Go to `http://localhost:5173`
+
+---
+
+## Adding Admin User
+
+Admin users are required to be able to make any modifications (add games, players, groups etc.)
+
+Admin players are created manually by adding an entry to the `admin_user` table in the database. To generate, the password hash, run `cargo run --bin tools` and enter your password. It will spit out the hash that you can add to the database
