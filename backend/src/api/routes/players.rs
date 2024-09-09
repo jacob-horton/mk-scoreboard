@@ -1,5 +1,7 @@
 use actix_web::{
-    get, post,
+    get,
+    http::header::ContentType,
+    post,
     web::{self, Data, Query},
     HttpResponse, Responder,
 };
@@ -206,7 +208,9 @@ pub async fn create_player(
     auth: BearerAuth,
 ) -> impl Responder {
     if !is_authorised(auth.token()).await {
-        return HttpResponse::Unauthorized().body("Not authorised to make this request");
+        return HttpResponse::Unauthorized()
+            .content_type(ContentType::plaintext())
+            .body("Not authorised to make this request");
     }
 
     let player_result = sqlx::query!(
@@ -228,7 +232,9 @@ pub async fn create_player(
         }
         Err(Error::Database(e)) => {
             if e.is_unique_violation() && e.constraint() == Some("name_unique") {
-                return HttpResponse::Conflict().body("Name must be unique");
+                return HttpResponse::Conflict()
+                    .content_type(ContentType::plaintext())
+                    .body("Name must be unique");
             }
 
             panic!("{e}");

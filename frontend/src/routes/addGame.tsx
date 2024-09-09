@@ -32,10 +32,6 @@ const AddGame = () => {
     params.append("groupId", group.id.toString());
 
     await ax.get("/game/previous_players", { params }).then((resp) => {
-      if (resp.status >= 400) {
-        throw new Error(resp.statusText);
-      }
-
       const players = resp.data as number[];
 
       setPlayerScores((prev) => {

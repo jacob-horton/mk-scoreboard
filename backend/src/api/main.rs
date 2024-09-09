@@ -2,7 +2,7 @@ use std::{env, sync::Arc};
 
 use actix_cors::Cors;
 use actix_web::{http, web::Data, App, HttpServer};
-use routes::auth::login;
+use routes::auth::{login, refresh_auth_token};
 use routes::games::{add_game, get_previous_players};
 use routes::groups::{
     add_player_to_group, create_group, get_group, get_group_badges, get_group_stats, head_to_head,
@@ -65,6 +65,7 @@ async fn main() -> std::io::Result<()> {
             .service(add_player_to_group)
             .service(remove_player_from_group)
             .service(login)
+            .service(refresh_auth_token)
     })
     .bind(("0.0.0.0", 8080))?
     .run()

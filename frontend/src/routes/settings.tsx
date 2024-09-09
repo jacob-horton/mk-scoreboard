@@ -6,6 +6,7 @@ import store from "store2";
 import { GroupsContext } from "../components/GroupsProvider";
 import { AuthContext } from "../components/AuthProvider";
 import ax from "../data/fetch";
+import axios from "axios";
 
 const Settings = () => {
   const { isAuthenticated, authenticate, logout, username } = useContext(AuthContext);
@@ -16,11 +17,15 @@ const Settings = () => {
   const handleCreatePlayer = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
 
-    const resp = await ax.post("/player", { name: playerName });
-
-    if (resp.status >= 400) {
-      alert(await resp.data)
-      return;
+    try {
+      await ax.post("/player", { name: playerName });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        alert(error.response?.data)
+        return;
+      } else {
+        throw error;
+      }
     }
 
     setPlayerName("");
@@ -34,11 +39,16 @@ const Settings = () => {
   const handleCreateGroup = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
 
-    const resp = await ax.post("/group", { name: groupName, maxScore });
+    try {
+      await ax.post("/group", { name: groupName, maxScore });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
 
-    if (resp.status >= 400) {
-      alert(await resp.data)
-      return;
+        alert(error.response?.data)
+        return;
+      } else {
+        throw error;
+      }
     }
 
     setGroupName("");

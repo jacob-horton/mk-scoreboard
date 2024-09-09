@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 
 use actix_web::{
-    delete, get, post,
+    delete, get,
+    http::header::ContentType,
+    post,
     web::{self, Data, Path, Query},
     HttpResponse, Responder,
 };
@@ -78,7 +80,9 @@ pub async fn create_group(
     auth: BearerAuth,
 ) -> impl Responder {
     if !is_authorised(auth.token()).await {
-        return HttpResponse::Unauthorized().body("Not authorised to make this request");
+        return HttpResponse::Unauthorized()
+            .content_type(ContentType::plaintext())
+            .body("Not authorised to make this request");
     }
 
     let group = sqlx::query!(
@@ -312,9 +316,9 @@ pub async fn get_group_badges(data: Data<AppState>, path: web::Path<i32>) -> imp
     let badges = get_badges(data.pg_pool.as_ref(), group_id).await;
     match badges {
         Ok(badges) => HttpResponse::Ok().json(badges),
-        Err(_) => {
-            HttpResponse::BadRequest().body("Group does not have max score, so cannot have badges")
-        }
+        Err(_) => HttpResponse::BadRequest()
+            .content_type(ContentType::plaintext())
+            .body("Group does not have max score, so cannot have badges"),
     }
 }
 
@@ -507,7 +511,11 @@ pub async fn head_to_head(
     let group_id = path.into_inner();
     let ids: Vec<i32> = match parse_ids(&info.ids) {
         Ok(ids) => ids,
-        Err(_) => return HttpResponse::BadRequest().body("Could not parse ids"),
+        Err(_) => {
+            return HttpResponse::BadRequest()
+                .content_type(ContentType::plaintext())
+                .body("Could not parse ids")
+        }
     };
 
     let common_games = get_common_player_games(&ids, group_id, data.pg_pool.as_ref()).await;
@@ -529,7 +537,9 @@ pub async fn add_player_to_group(
     auth: BearerAuth,
 ) -> impl Responder {
     if !is_authorised(auth.token()).await {
-        return HttpResponse::Unauthorized().body("Not authorised to make this request");
+        return HttpResponse::Unauthorized()
+            .content_type(ContentType::plaintext())
+            .body("Not authorised to make this request");
     }
 
     let (group_id, player_id) = path.into_inner();
@@ -552,7 +562,9 @@ pub async fn remove_player_from_group(
     auth: BearerAuth,
 ) -> impl Responder {
     if !is_authorised(auth.token()).await {
-        return HttpResponse::Unauthorized().body("Not authorised to make this request");
+        return HttpResponse::Unauthorized()
+            .content_type(ContentType::plaintext())
+            .body("Not authorised to make this request");
     }
 
     let (group_id, player_id) = path.into_inner();

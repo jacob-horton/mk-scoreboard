@@ -56,10 +56,6 @@ async function getHeadToHeadData(
   }
 
   const points = await ax.get(`/group/${groupId}/head_to_head`, { params }).then((resp) => {
-    if (resp.status >= 400) {
-      throw new Error(resp.statusText);
-    }
-
     return {
       playerStats: resp.data.playerStats.map((s) => ({
         ...s,

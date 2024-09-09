@@ -22,20 +22,16 @@ export async function getPlayerStats(
     params.append("n", nGames.toString());
   }
 
-  return ax.get(`/group/${groupId}/stats`, { params }).then((resp) => {
-    if (resp.status >= 400) {
-      throw new Error(resp.statusText);
-    }
-
-    return resp.data.map(
+  return ax.get(`/group/${groupId}/stats`, { params }).then((resp) =>
+    resp.data.map(
       (d) =>
         ({
           ...d,
           winPercentage: d.wins / d.games,
           pointsPerGame: d.points / d.games,
         }) as PlayerStats,
-    );
-  });
+    ),
+  );
 }
 
 export interface SimplePlayerStats {

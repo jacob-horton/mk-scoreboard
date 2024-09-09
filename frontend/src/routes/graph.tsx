@@ -41,20 +41,12 @@ async function getScores(
   }
 
   return await ax.get(`/player/${playerId}/${endpoint}`, { params }).then((resp) => {
-    if (resp.status >= 400) {
-      throw new Error(resp.statusText);
-    }
-
     return resp.data;
   });
 }
 
 async function getName(playerId: number) {
   return await ax.get(`/player/${playerId}`).then((resp) => {
-    if (resp.status >= 400) {
-      throw new Error(resp.statusText);
-    }
-
     return resp.data.name as string;
   });
 }

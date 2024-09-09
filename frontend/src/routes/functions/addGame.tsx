@@ -8,10 +8,6 @@ export interface PlayerScore {
 
 export async function loader({ params }: { params: { groupId: string } }) {
   const players = await ax.get(`/group/${params.groupId}/players`).then(async (resp) => {
-    if (resp.status >= 400) {
-      throw new Error(resp.statusText);
-    }
-
     const players = resp.data as Player[];
     players.sort((a, b) => {
       // Put other at bottom, but sort rest alphabetically
@@ -27,10 +23,6 @@ export async function loader({ params }: { params: { groupId: string } }) {
   });
 
   const group = await ax.get(`/group/${params.groupId}`).then(async (resp) => {
-    if (resp.status >= 400) {
-      throw new Error(resp.statusText);
-    }
-
     return resp.data as Group;
   });
 

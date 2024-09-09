@@ -1,22 +1,55 @@
-import { createContext, useMemo, useState } from "react";
+import { createContext, useEffect, useMemo, useState } from "react";
 import store from "store2";
 import { jwtDecode } from "jwt-decode";
 import ax from "../data/fetch";
 
-function getStoredJwt(): string | null {
-  const jwt = store.get("jwt");
-  ax.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
-  return jwt;
+type Tokens = { access: string | null; refresh: string | null };
+
+function loadStoredTokens(): Tokens {
+  const access = store.get("access_token");
+  const refresh = store.get("refresh_token");
+  return { access, refresh };
 }
 
-async function authenticate(name: string, password: string): Promise<string> {
+async function authenticate(name: string, password: string): Promise<Tokens> {
   const resp = await ax.post("/auth", { name, password });
+  return { access: resp.data.access_token, refresh: resp.data.refresh_token };
+}
 
-  if (resp.status >= 400) {
-    throw new Error('Failed to authenticate');
+function configureAxios(tokens: Tokens, onUpdateAccessToken: (token: string) => void, onFailedReauth: () => void) {
+  // Set up access token header
+  if (tokens.access) {
+    ax.defaults.headers.common['Authorization'] = `Bearer ${tokens.access}`;
+  } else {
+    ax.defaults.headers.common['Authorization'] = null;
   }
 
-  return resp.data;
+  // Set up auto refresh token
+  ax.interceptors.response.use(
+    (resp) => {
+      return resp;
+    },
+    async (error) => {
+      if (
+        error.response.status === 401 &&
+        error.config.url.trim() !== "/auth/refresh" &&
+        error.config.url.trim() !== "/auth"
+      ) {
+        try {
+          const newToken = (await ax.get("/auth/refresh", { headers: { 'Authorization': `Bearer ${tokens.refresh}` } })).data;
+          error.config.headers['Authorization'] = `Bearer ${newToken}`;
+          onUpdateAccessToken(newToken);
+        } catch (error) {
+          onFailedReauth();
+          return;
+        }
+
+        return await ax.request(error.config);
+      } else {
+        throw error;
+      }
+    },
+  );
 }
 
 const AuthContext = createContext<{
@@ -32,30 +65,46 @@ const AuthContext = createContext<{
 });
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [jwt, setJwt] = useState<string | null>(getStoredJwt());
+  const logout = async () => {
+    updateTokens({ access: null, refresh: null });
+  }
+
+  const [tokens, setTokens] = useState<Tokens>({ access: null, refresh: null });
   const username = useMemo(() => {
-    if (!jwt) {
+    if (!tokens.access) {
       return null;
     }
 
-    return jwtDecode(jwt).sub ?? null;
-  }, [jwt]);
+    return jwtDecode(tokens.access).sub ?? null;
+  }, [tokens.access]);
 
-  const updateJwt = (jwt: string | null) => {
-    if (jwt) {
-      store.set("jwt", jwt);
-      ax.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
+  // 
+  useEffect(() => {
+    const tokens = loadStoredTokens();
+    configureAxios(tokens, (access) => updateTokens({ ...tokens, access }), logout);
+    setTokens(tokens);
+  }, [])
+
+  const updateTokens = (tokens: Tokens) => {
+    if (tokens.access) {
+      store.set("access_token", tokens.access);
     } else {
-      store.remove("jwt");
-      ax.defaults.headers.common['Authorization'] = null;
+      store.remove("access_token");
     }
 
-    setJwt(jwt);
+    if (tokens.refresh) {
+      store.set("refresh_token", tokens.refresh);
+    } else {
+      store.remove("refresh_token");
+    }
+
+    configureAxios(tokens, (access) => updateTokens({ ...tokens, access }), logout);
+    setTokens(tokens);
   }
 
   const authenticateAndUpdate = async (name: string, password: string) => {
     try {
-      updateJwt(await authenticate(name, password));
+      updateTokens(await authenticate(name, password));
 
       return true;
     } catch (Error) {
@@ -63,13 +112,9 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }
 
-  const logout = async () => {
-    updateJwt(null);
-  }
-
   return (
     <AuthContext.Provider value={{
-      isAuthenticated: !!jwt,
+      isAuthenticated: !!tokens.access,
       authenticate: authenticateAndUpdate,
       logout,
       username

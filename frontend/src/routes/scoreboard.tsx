@@ -13,25 +13,18 @@ import NumberGamesSelector, { NumberGames } from "../components/NumberGames";
 import store from "store2";
 import { AuthContext } from "../components/AuthProvider";
 import ax from "../data/fetch";
+import axios from "axios";
 
 export async function loader({ params }: { params: { groupId: string } }) {
   store.set('lastGroup', params.groupId);
 
   return ax.get(`/group/${params.groupId}`).then((resp) => {
-    if (resp.status >= 400) {
-      throw new Error(resp.statusText);
-    }
-
     return resp.data as Group;
   });
 }
 
 async function getBadges(groupId: number) {
   return ax.get(`/group/${groupId}/badges`).then((resp) => {
-    if (resp.status >= 400) {
-      return new Map();
-    }
-
     const data = resp.data as { id: number; badges: Badges }[];
     let badgeMap: Map<number, Badges> = new Map();
 
@@ -40,6 +33,12 @@ async function getBadges(groupId: number) {
     }
 
     return badgeMap;
+  }).catch((error) => {
+    if (axios.isAxiosError(error)) {
+      return new Map();
+    } else {
+      throw error;
+    }
   });
 }
 

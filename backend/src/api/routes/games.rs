@@ -2,7 +2,7 @@ use std::ops::DerefMut;
 
 use actix_web::{
     get,
-    http::Error,
+    http::{header::ContentType, Error},
     post,
     web::{self, Data, Query},
     HttpResponse, Responder,
@@ -34,7 +34,9 @@ pub async fn add_game(
     auth: BearerAuth,
 ) -> Result<HttpResponse, Error> {
     if !is_authorised(auth.token()).await {
-        return Ok(HttpResponse::Unauthorized().body("Not authorised to make this request"));
+        return Ok(HttpResponse::Unauthorized()
+            .content_type(ContentType::plaintext())
+            .body("Not authorised to make this request"));
     }
 
     let mut transaction = data.pg_pool.begin().await.unwrap();
@@ -64,7 +66,9 @@ pub async fn add_game(
 
     transaction.commit().await.unwrap();
 
-    Ok(HttpResponse::Ok().body("Game added successfully"))
+    Ok(HttpResponse::Ok()
+        .content_type(ContentType::plaintext())
+        .body("Game added successfully"))
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
