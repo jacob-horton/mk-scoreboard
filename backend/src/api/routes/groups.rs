@@ -364,7 +364,6 @@ async fn get_common_player_games(
     group_id: i32,
     pool: &PgPool,
 ) -> Vec<CommonPlayerGame> {
-    // TODO: use LIMIT for `n`?
     let common_game_ids = sqlx::query_scalar!(
         "SELECT game_id
         FROM game_score
