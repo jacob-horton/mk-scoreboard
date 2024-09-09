@@ -111,7 +111,7 @@ Go to `http://localhost:5173`
 
 Admin users are required to be able to make any modifications (add games, players, groups etc.)
 
-Admin players are created manually by adding an entry to the `admin_user` table in the database. To generate, the password hash, run `cargo run --bin tools` and enter your password. It will spit out the hash that you can add to the database
+Admin players are created manually by adding an entry to the `admin_user` table in the database. To generate, the password hash, run `cargo run --bin tools hash-password <password>`. This will spit out the hash that you can add to the database
 
 
 You can log in as an admin user in "Settings" on the frontend

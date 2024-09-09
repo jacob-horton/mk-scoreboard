@@ -19,6 +19,7 @@ actix-web = "4.9.0"
 actix-web-httpauth = "0.8.2"
 bcrypt = "0.15.1"
 chrono = { version = "^0.4.1", features = ["clock", "serde"] }
+clap = { version = "4.5.17", features = ["derive"] }
 dotenv = "0.15.0"
 itertools = "0.13.0"
 jsonwebtoken = "9.3.0"
