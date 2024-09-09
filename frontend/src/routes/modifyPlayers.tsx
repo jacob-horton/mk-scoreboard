@@ -49,6 +49,7 @@ const AddPlayerToGroup = () => {
           <p>In Group</p>
           {playersInGroup.map((p) => (
             <button
+              key={p.id}
               className="px-4 py-2 w-min rounded-lg transition bg-gray-200 hover:bg-gray-300 whitespace-nowrap"
               onClick={() => handleAddPlayerToGroup(p)}
             >
@@ -60,6 +61,7 @@ const AddPlayerToGroup = () => {
           <p>Not In Group</p>
           {playersNotInGroup.map((p) => (
             <button
+              key={p.id}
               className="px-4 py-2 w-min rounded-lg transition bg-gray-200 hover:bg-gray-300 whitespace-nowrap"
               onClick={() => handleRemovePlayerFromGroup(p)}
             >

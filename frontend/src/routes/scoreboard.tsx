@@ -34,7 +34,7 @@ async function getBadges(groupId: number) {
 
     return badgeMap;
   }).catch((error) => {
-    if (axios.isAxiosError(error)) {
+    if (axios.isAxiosError(error) && error.status === 404) {
       return new Map();
     } else {
       throw error;
@@ -132,7 +132,7 @@ const Scoreboard = () => {
               <PlayerCardWithChange
                 stats={p}
                 idx={i}
-                key={p.stats.id.toString() + " " + groupId} // TODO: fix key
+                key={p.stats.id}
                 badges={badges.get(p.stats.id) ?? noBadges()}
               />
             </Link>

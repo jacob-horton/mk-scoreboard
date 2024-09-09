@@ -138,8 +138,8 @@ pub async fn player_best_streak(
             let windows = scores.windows(n as usize);
             windows
                 .max_by(|w1, w2| w1.iter().sum::<i32>().cmp(&w2.iter().sum::<i32>()))
-                .unwrap()
-                .to_vec()
+                .map(|streak| streak.to_vec())
+                .unwrap_or(scores)
         }
     };
 

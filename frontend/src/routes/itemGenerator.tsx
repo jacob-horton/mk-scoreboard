@@ -14,6 +14,7 @@ const ItemGenerator = () => {
   const unselected = "bg-gray-200 grayscale-[50%]";
 
   const [selection, setSelection] = useState<number[]>([]);
+  const [isRandomising, setIsRandomising] = useState<boolean>(false);
 
   const randomise = () => {
     const length = Math.ceil(Math.random() * (numItems / 2));
@@ -37,21 +38,24 @@ const ItemGenerator = () => {
         </div>
         <div className="space-x-3">
           <button
-            className="bg-blue-500 text-white px-4 py-2 w-min rounded-lg"
+            className="bg-blue-500 text-white px-4 py-2 w-min rounded-lg disabled:bg-gray-400 disabled:text-gray-800"
+            disabled={isRandomising}
             onClick={async () => {
+              setIsRandomising(true);
               for (let i = 0; i < numRolls; i++) {
                 randomise();
                 await new Promise((r) =>
                   setTimeout(r, multiplier * Math.pow(i + 1, 2))
                 );
               }
+              setIsRandomising(false);
             }}
           >
             Randomise
           </button>
           <button
-            className="bg-gray-200 px-4 py-2 w-min rounded-lg"
-            // TODO: cancel randomiser
+            className="bg-gray-200 px-4 py-2 w-min rounded-lg disabled:bg-gray-400"
+            disabled={isRandomising}
             onClick={() => setSelection([])}
           >
             Reset

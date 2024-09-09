@@ -266,6 +266,16 @@ async fn get_badges(pool: &PgPool, group_id: i32) -> Result<Vec<BadgesWithId>, N
         .unwrap()
         .max_score;
 
+    let max_score = match max_score {
+        Some(n) => n,
+        None => return Err(NoMaxScoreErr),
+    } as f32;
+
+    let star_score = max_score;
+    let gold_score = 0.94 * max_score;
+    let silver_score = 0.88 * max_score;
+    let bronze_score = 0.83 * max_score;
+
     let player_ids = sqlx::query_scalar!(
         "SELECT player_id FROM player_group WHERE group_id = $1",
         group_id
@@ -277,19 +287,7 @@ async fn get_badges(pool: &PgPool, group_id: i32) -> Result<Vec<BadgesWithId>, N
     let mut all_badges = Vec::with_capacity(player_ids.len());
     for id in player_ids {
         let scores = get_player_history(pool, id, group_id, None).await;
-
-        // TODO: find correct response for error
-        let max_score = match max_score {
-            Some(n) => n,
-            None => return Err(NoMaxScoreErr),
-        } as f32;
-
         let mut badges: Badges = Default::default();
-
-        let star_score = max_score;
-        let gold_score = 0.94 * max_score;
-        let silver_score = 0.88 * max_score;
-        let bronze_score = 0.83 * max_score;
 
         for score in scores {
             let score = score as f32;
@@ -316,7 +314,7 @@ pub async fn get_group_badges(data: Data<AppState>, path: web::Path<i32>) -> imp
     let badges = get_badges(data.pg_pool.as_ref(), group_id).await;
     match badges {
         Ok(badges) => HttpResponse::Ok().json(badges),
-        Err(_) => HttpResponse::BadRequest()
+        Err(_) => HttpResponse::NotFound()
             .content_type(ContentType::plaintext())
             .body("Group does not have max score, so cannot have badges"),
     }
@@ -367,7 +365,7 @@ async fn get_common_player_games(
     pool: &PgPool,
 ) -> Vec<CommonPlayerGame> {
     // TODO: use LIMIT for `n`?
-    let common_game_ids = sqlx::query!(
+    let common_game_ids = sqlx::query_scalar!(
         "SELECT game_id
         FROM game_score
         INNER JOIN game ON game.id = game_score.game_id
@@ -380,10 +378,7 @@ async fn get_common_player_games(
     )
     .fetch_all(pool)
     .await
-    .unwrap()
-    .iter()
-    .map(|x| x.game_id)
-    .collect_vec();
+    .unwrap();
 
     let common_games = sqlx::query_as!(
         CommonPlayerGame,

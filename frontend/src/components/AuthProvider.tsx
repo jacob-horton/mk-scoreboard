@@ -31,9 +31,9 @@ function configureAxios(tokens: Tokens, onUpdateAccessToken: (token: string) => 
     },
     async (error) => {
       if (
-        error.response.status === 401 &&
-        error.config.url.trim() !== "/auth/refresh" &&
-        error.config.url.trim() !== "/auth"
+        error?.response?.status === 401 &&
+        error?.config?.url?.trim() !== "/auth/refresh" &&
+        error?.config?.url?.trim() !== "/auth"
       ) {
         try {
           const newToken = (await ax.get("/auth/refresh", { headers: { 'Authorization': `Bearer ${tokens.refresh}` } })).data;
