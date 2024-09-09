@@ -6,50 +6,40 @@ import {
   getPlayerStats,
 } from "../data/playerStats";
 import { Link, useLoaderData } from "react-router-dom";
-import getApiAddr from "../data/ip";
 import { Badges, Group, noBadges } from "../data/types";
 import Page from "../components/Page";
 import HeaderBar, { Sort, getSort } from "../components/HeaderBar";
 import NumberGamesSelector, { NumberGames } from "../components/NumberGames";
 import store from "store2";
 import { AuthContext } from "../components/AuthProvider";
+import ax from "../data/fetch";
 
 export async function loader({ params }: { params: { groupId: string } }) {
-  const apiAddr = getApiAddr();
-  const url = new URL(`${apiAddr}/group/${params.groupId}`);
-
   store.set('lastGroup', params.groupId);
 
-  return fetch(url).then(async (response) => {
-    if (!response.ok) {
-      console.log("nope");
-      throw new Error(response.statusText);
+  return ax.get(`/group/${params.groupId}`).then((resp) => {
+    if (resp.status >= 400) {
+      throw new Error(resp.statusText);
     }
 
-    return response.json().then((data) => data as Group);
+    return resp.data as Group;
   });
 }
 
 async function getBadges(groupId: number) {
-  const apiAddr = getApiAddr();
-  const url = new URL(`${apiAddr}/group/${groupId}/badges`);
-
-  return fetch(url).then(async (response) => {
-    if (!response.ok) {
-      console.log("nope");
+  return ax.get(`/group/${groupId}/badges`).then((resp) => {
+    if (resp.status >= 400) {
       return new Map();
     }
 
-    return response.json().then((resp) => {
-      const data = resp as { id: number; badges: Badges }[];
-      let badgeMap: Map<number, Badges> = new Map();
+    const data = resp.data as { id: number; badges: Badges }[];
+    let badgeMap: Map<number, Badges> = new Map();
 
-      for (const badges of data) {
-        badgeMap.set(badges.id, badges.badges);
-      }
+    for (const badges of data) {
+      badgeMap.set(badges.id, badges.badges);
+    }
 
-      return badgeMap;
-    });
+    return badgeMap;
   });
 }
 

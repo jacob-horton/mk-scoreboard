@@ -1,4 +1,4 @@
-import getApiAddr from "../../data/ip";
+import ax from "../../data/fetch";
 import { Group, Player } from "../../data/types";
 
 export interface PlayerScore {
@@ -7,15 +7,12 @@ export interface PlayerScore {
 }
 
 export async function loader({ params }: { params: { groupId: string } }) {
-  const apiAddr = getApiAddr();
-  let url = new URL(`${apiAddr}/group/${params.groupId}/players`);
-
-  const players = await fetch(url).then(async (response) => {
-    if (!response.ok) {
-      throw new Error(response.statusText);
+  const players = await ax.get(`/group/${params.groupId}/players`).then(async (resp) => {
+    if (resp.status >= 400) {
+      throw new Error(resp.statusText);
     }
 
-    const players = await response.json().then((data) => data as Player[]);
+    const players = resp.data as Player[];
     players.sort((a, b) => {
       // Put other at bottom, but sort rest alphabetically
       if (a.name == "Other") {
@@ -29,15 +26,12 @@ export async function loader({ params }: { params: { groupId: string } }) {
     return players;
   });
 
-  url = new URL(`${apiAddr}/group/${params.groupId}`);
-
-  const group = await fetch(url).then(async (response) => {
-    if (!response.ok) {
-      console.log("nope");
-      throw new Error(response.statusText);
+  const group = await ax.get(`/group/${params.groupId}`).then(async (resp) => {
+    if (resp.status >= 400) {
+      throw new Error(resp.statusText);
     }
 
-    return response.json().then((data) => data as Group);
+    return resp.data as Group;
   });
 
   return { group, players };

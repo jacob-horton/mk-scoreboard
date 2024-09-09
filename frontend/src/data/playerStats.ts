@@ -1,4 +1,4 @@
-import getApiAddr from "./ip";
+import ax from "./fetch";
 
 export interface PlayerStats {
   id: number;
@@ -15,29 +15,25 @@ export async function getPlayerStats(
   nGames: number | null,
   skipMostRecent: boolean,
 ): Promise<PlayerStats[]> {
-  const apiAddr = getApiAddr();
-  const url = new URL(`${apiAddr}/group/${groupId}/stats`);
-  url.searchParams.append("skipMostRecent", skipMostRecent.toString());
+  const params = new URLSearchParams();
+  params.append("skipMostRecent", skipMostRecent.toString());
 
   if (nGames !== null) {
-    url.searchParams.append("n", nGames.toString());
+    params.append("n", nGames.toString());
   }
 
-  return fetch(url).then(async (response) => {
-    if (!response.ok) {
-      console.log("nope");
-      throw new Error(response.statusText);
+  return ax.get(`/group/${groupId}/stats`, { params }).then((resp) => {
+    if (resp.status >= 400) {
+      throw new Error(resp.statusText);
     }
 
-    return response.json().then((data) =>
-      data.map(
-        (d) =>
-          ({
-            ...d,
-            winPercentage: d.wins / d.games,
-            pointsPerGame: d.points / d.games,
-          }) as PlayerStats,
-      ),
+    return resp.data.map(
+      (d) =>
+        ({
+          ...d,
+          winPercentage: d.wins / d.games,
+          pointsPerGame: d.points / d.games,
+        }) as PlayerStats,
     );
   });
 }

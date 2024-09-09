@@ -1,39 +1,21 @@
 import { useLoaderData } from "react-router-dom";
 import Page from "../components/Page";
 import { loader } from "./functions/addGame";
-import getApiAddr from "../data/ip";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Player } from "../data/types";
-import { AuthContext } from "../components/AuthProvider";
+import ax from "../data/fetch";
 
 async function getAllPlayers() {
-  const apiAddr = getApiAddr();
-  const url = new URL(`${apiAddr}/players`);
-
-  const resp = await fetch(url);
-  const body = await resp.json();
-
-  return body as Player[];
+  const resp = await ax.get("/players");
+  return (await resp.data) as Player[];
 }
 
-async function addPlayerToGroup(jwt: string | null, groupId: number, playerId: number) {
-  const apiAddr = getApiAddr();
-  const url = new URL(`${apiAddr}/group/${groupId}/player/${playerId}`);
-
-  await fetch(url, {
-    method: "POST",
-    headers: { "Authorization": `Bearer ${jwt}` },
-  });
+async function addPlayerToGroup(groupId: number, playerId: number) {
+  ax.post(`/group/${groupId}/player/${playerId}`);
 }
 
-async function removePlayerFromGroup(jwt: string | null, groupId: number, playerId: number) {
-  const apiAddr = getApiAddr();
-  const url = new URL(`${apiAddr}/group/${groupId}/player/${playerId}`);
-
-  await fetch(url, {
-    method: "DELETE",
-    headers: { "Authorization": `Bearer ${jwt}` },
-  });
+async function removePlayerFromGroup(groupId: number, playerId: number) {
+  await ax.delete(`/group/${groupId}/player/${playerId}`);
 }
 
 const AddPlayerToGroup = () => {
@@ -41,8 +23,6 @@ const AddPlayerToGroup = () => {
   const [playersInGroup, setPlayersInGroup] = useState<Player[]>(initialPlayersInGroup);
 
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
-
-  const { jwt } = useContext(AuthContext);
 
   useEffect(() => {
     getAllPlayers().then((players) => setAllPlayers(players));
@@ -54,12 +34,12 @@ const AddPlayerToGroup = () => {
 
   const handleAddPlayerToGroup = (p: Player) => {
     setPlayersInGroup((players) => players.filter((player) => player.id !== p.id))
-    removePlayerFromGroup(jwt, group.id, p.id);
+    removePlayerFromGroup(group.id, p.id);
   }
 
   const handleRemovePlayerFromGroup = (p: Player) => {
     setPlayersInGroup((players) => [...players, p]);
-    addPlayerToGroup(jwt, group.id, p.id);
+    addPlayerToGroup(group.id, p.id);
   }
 
   return (

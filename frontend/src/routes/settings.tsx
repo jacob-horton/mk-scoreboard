@@ -1,15 +1,14 @@
 import { useContext, useState } from "react";
 import Page from "../components/Page";
 import { Form } from "react-router-dom";
-import getApiAddr from "../data/ip";
 import IntTextBox from "../components/IntTextBox";
 import store from "store2";
 import { GroupsContext } from "../components/GroupsProvider";
 import { AuthContext } from "../components/AuthProvider";
+import ax from "../data/fetch";
 
 const Settings = () => {
-  const apiAddr = getApiAddr();
-  const { isAuthenticated, authenticate, logout, jwt, username } = useContext(AuthContext);
+  const { isAuthenticated, authenticate, logout, username } = useContext(AuthContext);
 
   // Add player
   const [playerName, setPlayerName] = useState<string>("");
@@ -17,17 +16,10 @@ const Settings = () => {
   const handleCreatePlayer = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
 
-    const body = { name: playerName }
+    const resp = await ax.post("/player", { name: playerName });
 
-    const url = new URL(`${apiAddr}/player`);
-    const resp = await fetch(url, {
-      method: "POST",
-      body: JSON.stringify(body),
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${jwt}` },
-    });
-
-    if (!resp.ok) {
-      alert(await resp.text())
+    if (resp.status >= 400) {
+      alert(await resp.data)
       return;
     }
 
@@ -42,20 +34,10 @@ const Settings = () => {
   const handleCreateGroup = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
 
-    const body = {
-      name: groupName,
-      maxScore,
-    }
+    const resp = await ax.post("/group", { name: groupName, maxScore });
 
-    const url = new URL(`${apiAddr}/group`);
-    const resp = await fetch(url, {
-      method: "POST",
-      body: JSON.stringify(body),
-      headers: { "Content-Type": "application/json", "Authentication": `Bearer: ${jwt}` },
-    });
-
-    if (!resp.ok) {
-      alert(await resp.text())
+    if (resp.status >= 400) {
+      alert(await resp.data)
       return;
     }
 

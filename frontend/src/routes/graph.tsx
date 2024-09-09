@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import store from "store2";
 import NumberGamesSelector, { NumberGames } from "../components/NumberGames";
 import { stdDev } from "../data/stats";
-import getApiAddr from "../data/ip";
+import ax from "../data/fetch";
 
 ChartJS.register(
   CategoryScale,
@@ -33,35 +33,29 @@ async function getScores(
   endpoint: "history" | "best_streak",
   nGames?: number
 ) {
-  const apiAddr = getApiAddr();
-  const url = new URL(`${apiAddr}/player/${playerId}/${endpoint}`);
-  url.searchParams.append("groupId", groupId.toString());
+  const params = new URLSearchParams();
+  params.append("groupId", groupId.toString());
 
   if (nGames !== undefined) {
-    url.searchParams.append("n", nGames.toString());
+    params.append("n", nGames.toString());
   }
 
-  return await fetch(url).then(async (response) => {
-    if (!response.ok) {
-      console.log("nope");
-      throw new Error(response.statusText);
+  return await ax.get(`/player/${playerId}/${endpoint}`, { params }).then((resp) => {
+    if (resp.status >= 400) {
+      throw new Error(resp.statusText);
     }
 
-    return await response.json();
+    return resp.data;
   });
 }
 
 async function getName(playerId: number) {
-  const apiAddr = getApiAddr();
-  const url = new URL(`${apiAddr}/player/${playerId}`);
-
-  return await fetch(url).then(async (response) => {
-    if (!response.ok) {
-      console.log("nope");
-      throw new Error(response.statusText);
+  return await ax.get(`/player/${playerId}`).then((resp) => {
+    if (resp.status >= 400) {
+      throw new Error(resp.statusText);
     }
 
-    return response.json().then((data) => data.name as string);
+    return resp.data.name as string;
   });
 }
 

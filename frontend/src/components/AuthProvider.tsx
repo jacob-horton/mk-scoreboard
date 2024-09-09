@@ -1,45 +1,33 @@
 import { createContext, useMemo, useState } from "react";
-import getApiAddr from "../data/ip";
 import store from "store2";
 import { jwtDecode } from "jwt-decode";
+import ax from "../data/fetch";
 
 function getStoredJwt(): string | null {
-  return store.get("jwt");
-  ;
+  const jwt = store.get("jwt");
+  ax.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
+  return jwt;
 }
 
 async function authenticate(name: string, password: string): Promise<string> {
-  const body = {
-    name,
-    password,
-  };
+  const resp = await ax.post("/auth", { name, password });
 
-  const apiAddr = getApiAddr();
-  const url = new URL(`${apiAddr}/auth`);
-  const resp = await fetch(url, {
-    method: "POST",
-    body: JSON.stringify(body),
-    headers: { "Content-Type": "application/json" },
-  });
-
-  if (!resp.ok) {
+  if (resp.status >= 400) {
     throw new Error('Failed to authenticate');
   }
 
-  return await resp.text();
+  return resp.data;
 }
 
 const AuthContext = createContext<{
   isAuthenticated: boolean,
   authenticate: (name: string, password: string) => Promise<boolean>,
   logout: () => void
-  jwt: string | null,
   username: string | null,
 }>({
   isAuthenticated: false,
   authenticate: (_: string, __: string) => new Promise(() => false),
   logout: () => { },
-  jwt: null,
   username: null,
 });
 
@@ -53,11 +41,21 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return jwtDecode(jwt).sub ?? null;
   }, [jwt]);
 
+  const updateJwt = (jwt: string | null) => {
+    if (jwt) {
+      store.set("jwt", jwt);
+      ax.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
+    } else {
+      store.remove("jwt");
+      ax.defaults.headers.common['Authorization'] = null;
+    }
+
+    setJwt(jwt);
+  }
+
   const authenticateAndUpdate = async (name: string, password: string) => {
     try {
-      const jwt = await authenticate(name, password);
-      store.set("jwt", jwt);
-      setJwt(jwt);
+      updateJwt(await authenticate(name, password));
 
       return true;
     } catch (Error) {
@@ -66,8 +64,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const logout = async () => {
-    store.remove("jwt");
-    setJwt(null);
+    updateJwt(null);
   }
 
   return (
@@ -75,7 +72,6 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       isAuthenticated: !!jwt,
       authenticate: authenticateAndUpdate,
       logout,
-      jwt,
       username
     }}>
       {children}

@@ -20,6 +20,7 @@ import { PlayerCard } from "../components/PlayerCard";
 import HeaderBar, { Sort, getSort } from "../components/HeaderBar";
 import store from "store2";
 import NumberGamesSelector, { NumberGames } from "../components/NumberGames";
+import ax from "../data/fetch";
 
 ChartJS.register(
   CategoryScale,
@@ -47,30 +48,26 @@ async function getHeadToHeadData(
   groupId: number,
   nGames?: number
 ): Promise<HeadToHeadData> {
-  const apiAddr = getApiAddr();
-  let url = new URL(`${apiAddr}/group/${groupId}/head_to_head`);
-  url.searchParams.append("ids", playerIds.join(","));
+  const params = new URLSearchParams();
+  params.append("ids", playerIds.join(","));
 
   if (nGames !== undefined) {
-    url.searchParams.append("n", nGames.toString());
+    params.append("n", nGames.toString());
   }
 
-  const points = await fetch(url).then(async (response) => {
-    if (!response.ok) {
-      console.log("nope");
-      throw new Error(response.statusText);
+  const points = await ax.get(`/group/${groupId}/head_to_head`, { params }).then((resp) => {
+    if (resp.status >= 400) {
+      throw new Error(resp.statusText);
     }
 
-    return response.json().then((data) => (
-      {
-        playerStats: data.playerStats.map((s) => ({
-          ...s,
-          winPercentage: s.wins / s.games,
-          pointsPerGame: s.points / s.games,
-        })),
-        histories: data.histories,
-      } as HeadToHeadData
-    ));
+    return {
+      playerStats: resp.data.playerStats.map((s) => ({
+        ...s,
+        winPercentage: s.wins / s.games,
+        pointsPerGame: s.points / s.games,
+      })),
+      histories: resp.data.histories,
+    } as HeadToHeadData;
   });
 
   return points;

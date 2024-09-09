@@ -1,14 +1,12 @@
-import getApiAddr from "./ip";
+import ax from "./fetch";
 import { Group } from "./types";
 
 export async function getGroups(): Promise<Group[]> {
-  const apiAddr = getApiAddr();
-  return fetch(`${apiAddr}/groups`).then(async (response) => {
-    if (!response.ok) {
-      console.log("nope");
-      throw new Error(response.statusText);
+  return ax.get("/groups").then(async (resp) => {
+    if (resp.status >= 400) {
+      throw new Error(resp.statusText);
     }
 
-    return response.json().then((data) => data as Group[]);
+    return resp.data as Group[];
   });
 }

@@ -1,10 +1,9 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import PlayerScoreInput from "../components/PlayerScoreInput";
 import { Form, useLoaderData, useNavigate } from "react-router-dom";
 import Page from "../components/Page";
 import { PlayerScore, canSubmit, loader } from "./functions/addGame";
-import getApiAddr from "../data/ip";
-import { AuthContext } from "../components/AuthProvider";
+import ax from "../data/fetch";
 
 const AddGame = () => {
   const { group, players } = useLoaderData() as Awaited<
@@ -17,37 +16,27 @@ const AddGame = () => {
     [...Array(numPlayers)].map(() => ({ playerId: null, score: 0 }))
   );
 
-  const { jwt } = useContext(AuthContext);
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     if (!canSubmit(playerScores, group.maxScore)) {
       return;
     }
 
-    const apiAddr = getApiAddr();
-    await fetch(`${apiAddr}/game`, {
-      method: "POST",
-      body: JSON.stringify({ scores: playerScores, groupId: group.id }),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${jwt}`
-      },
-    });
+    await ax.post("/game", { scores: playerScores, groupId: group.id });
 
     navigate(`/groups/${group.id}/scoreboard`);
   };
 
   const handlePrevPlayers = async () => {
-    const apiAddr = getApiAddr();
-    const url = new URL(`${apiAddr}/game/previous_players`);
-    url.searchParams.append("groupId", group.id.toString());
+    const params = new URLSearchParams();
+    params.append("groupId", group.id.toString());
 
-    await fetch(url).then(async (response) => {
-      if (!response.ok) {
-        throw new Error(response.statusText);
+    await ax.get("/game/previous_players", { params }).then((resp) => {
+      if (resp.status >= 400) {
+        throw new Error(resp.statusText);
       }
 
-      const players = await response.json().then((data) => data as number[]);
+      const players = resp.data as number[];
 
       setPlayerScores((prev) => {
         return prev.map((p, i) => ({ ...p, playerId: players[i] }));
