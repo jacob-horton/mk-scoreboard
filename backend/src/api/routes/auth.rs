@@ -1,5 +1,5 @@
 use actix_web::{
-    get,
+    delete, get,
     http::header::ContentType,
     post,
     web::{self, Data},
@@ -25,7 +25,7 @@ struct Claims {
     sub: String,
     exp: i64,
     nbf: i64,
-    sid: Option<String>,
+    sid: String,
     token_type: TokenType,
 }
 
@@ -47,27 +47,16 @@ pub struct AuthData {
     password: String,
 }
 
-async fn generate_refresh_token(pool: &PgPool, user_id: i32) -> String {
+fn generate_refresh_token(user_id: i32, sid: Uuid) -> String {
     // 5 year expiry
     let exp = (Utc::now() + Duration::days(5 * 365)).timestamp();
 
     // Not before 4 minutes (access token expires in 5, don't want spam before then)
     let nbf = (Utc::now() + Duration::minutes(4)).timestamp();
 
-    let sid = Uuid::new_v4();
-
-    sqlx::query!(
-        "INSERT INTO admin_session (id, user_id) VALUES ($1, $2)",
-        sid,
-        user_id,
-    )
-    .execute(pool)
-    .await
-    .unwrap();
-
     let claims = Claims {
         sub: user_id.to_string(),
-        sid: Some(sid.to_string()),
+        sid: sid.to_string(),
         token_type: TokenType::Refresh,
         nbf,
         exp,
@@ -81,7 +70,7 @@ async fn generate_refresh_token(pool: &PgPool, user_id: i32) -> String {
     .unwrap()
 }
 
-fn generate_access_token(name: &str) -> String {
+fn generate_access_token(name: &str, sid: Uuid) -> String {
     // 5 mins expiry
     let exp = (Utc::now() + Duration::minutes(5)).timestamp();
 
@@ -89,7 +78,7 @@ fn generate_access_token(name: &str) -> String {
         sub: name.to_string(),
         nbf: Utc::now().timestamp(),
         token_type: TokenType::Access,
-        sid: None,
+        sid: sid.to_string(),
         exp,
     };
 
@@ -99,6 +88,21 @@ fn generate_access_token(name: &str) -> String {
         &EncodingKey::from_secret(include_bytes!("../jwt_secret.dat")),
     )
     .unwrap()
+}
+
+async fn create_session(pool: &PgPool, user_id: i32) -> Uuid {
+    let sid = Uuid::new_v4();
+
+    sqlx::query!(
+        "INSERT INTO admin_session (id, user_id) VALUES ($1, $2)",
+        sid,
+        user_id,
+    )
+    .execute(pool)
+    .await
+    .unwrap();
+
+    return sid;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -128,8 +132,9 @@ pub async fn login(data: Data<AppState>, info: web::Json<AuthData>) -> impl Resp
             .body("Invalid credentials");
     }
 
-    let access_token = generate_access_token(&info.name);
-    let refresh_token = generate_refresh_token(data.pg_pool.as_ref(), admin_user.id).await;
+    let sid = create_session(data.pg_pool.as_ref(), admin_user.id).await;
+    let access_token = generate_access_token(&info.name, sid);
+    let refresh_token = generate_refresh_token(admin_user.id, sid);
 
     let resp = AuthResponse {
         access_token,
@@ -153,8 +158,7 @@ pub async fn refresh_auth_token(data: Data<AppState>, auth: BearerAuth) -> impl 
             .body("Invalid refresh token");
     };
 
-    let sid: String = token.claims.sid.unwrap();
-    let sid: Uuid = Uuid::parse_str(&sid).unwrap();
+    let sid: Uuid = Uuid::parse_str(&token.claims.sid).unwrap();
     let user_name = sqlx::query_scalar!(
         r#"SELECT admin_user.username
         FROM admin_session
@@ -172,9 +176,32 @@ pub async fn refresh_auth_token(data: Data<AppState>, auth: BearerAuth) -> impl 
             .body("Session expired");
     };
 
-    let access_token = generate_access_token(&user_name);
+    let access_token = generate_access_token(&user_name, sid);
 
     HttpResponse::Ok()
         .content_type(ContentType::plaintext())
         .body(access_token)
+}
+
+#[delete("/auth")]
+pub async fn delete_session(data: Data<AppState>, auth: BearerAuth) -> impl Responder {
+    let token = decode::<Claims>(
+        auth.token(),
+        &DecodingKey::from_secret(include_bytes!("../jwt_secret.dat")),
+        &Validation::default(),
+    );
+
+    let Ok(token) = token else {
+        return HttpResponse::Unauthorized()
+            .content_type(ContentType::plaintext())
+            .body("Invalid token");
+    };
+
+    let sid: Uuid = Uuid::parse_str(&token.claims.sid).unwrap();
+    sqlx::query!(r#"DELETE FROM admin_session WHERE id = $1"#, sid)
+        .execute(data.pg_pool.as_ref())
+        .await
+        .unwrap();
+
+    HttpResponse::NoContent().finish()
 }

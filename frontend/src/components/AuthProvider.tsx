@@ -65,10 +65,6 @@ const AuthContext = createContext<{
 });
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const logout = async () => {
-    updateTokens({ access: null, refresh: null });
-  }
-
   const [tokens, setTokens] = useState<Tokens>({ access: null, refresh: null });
   const username = useMemo(() => {
     if (!tokens.access) {
@@ -78,7 +74,13 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return jwtDecode(tokens.access).sub ?? null;
   }, [tokens.access]);
 
-  // 
+  const logout = async () => {
+    // Delete session
+    ax.delete("/auth");
+    updateTokens({ access: null, refresh: null });
+  }
+
+  // Load tokens from localstorage
   useEffect(() => {
     const tokens = loadStoredTokens();
     configureAxios(tokens, (access) => updateTokens({ ...tokens, access }), logout);
