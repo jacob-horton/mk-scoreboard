@@ -17,21 +17,17 @@ const NumberGamesSelector: React.FC<NumberGamesProps> = ({
   const numberGamesOptions: NumberGames[] = [1, 5, 10, 25, 50, "All"];
 
   useEffect(() => {
-    async function loadNumberGames() {
-      const loaded = store.session.get("numberGames");
-      if (loaded != null) {
-        const asNumber = Number(loaded);
-        if (!isNaN(asNumber)) {
-          setNumberGames(asNumber);
-          onGamesChange(asNumber);
-        } else if (loaded === "All") {
-          setNumberGames(loaded);
-          onGamesChange(loaded);
-        }
+    const loaded = store.session.get("numberGames");
+    if (loaded != null) {
+      const asNumber = Number(loaded);
+      if (!isNaN(asNumber)) {
+        setNumberGames(asNumber);
+        onGamesChange(asNumber);
+      } else if (loaded === "All") {
+        setNumberGames(loaded);
+        onGamesChange(loaded);
       }
     }
-
-    loadNumberGames();
   }, []);
 
   return (
