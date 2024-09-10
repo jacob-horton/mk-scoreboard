@@ -11,7 +11,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import Page from "../components/Page";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import store from "store2";
 import NumberGamesSelector, { NumberGames } from "../components/NumberGames";
 import { stdDev } from "../data/stats";
@@ -70,6 +70,39 @@ interface Streak {
   stdDev: number;
 }
 
+interface Line {
+  gradient: number;
+  intercept: number;
+}
+
+function calcBestFitLine(points: number[]): Line {
+  if (points.length === 0) {
+    return { gradient: 0, intercept: 0 };
+  }
+
+  const y_mean = points.reduce((a, b) => a + b, 0) / points.length;
+  const x_mean = (points.length + 1) / 2;
+
+  const x_mean_square_diffs = points.map((_, i) => {
+    const x = i + 1;
+    return Math.pow(x - x_mean, 2);
+  }).reduce((a, b) => a + b);
+
+  const m = points.map((y, i) => {
+    const x = i + 1;
+    return ((x - x_mean) * (y - y_mean));
+  }).reduce((a, b) => a + b) / x_mean_square_diffs;
+
+  const c = y_mean - m * x_mean;
+  return { gradient: m, intercept: c };
+}
+
+function calcBestFitPoints(points: number[]): number[] {
+  const line = calcBestFitLine(points);
+  const x = [...Array(points.length).keys()].map((i) => i + 1);
+  return x.map((x) => line.gradient * x + line.intercept);
+}
+
 const Graph = () => {
   const { name, groupId, playerId } = useLoaderData() as Awaited<
     ReturnType<typeof loader>
@@ -119,10 +152,11 @@ const Graph = () => {
     },
   };
 
-  const labels = [...Array(points.length).keys()].map((x) => x + 1);
-  const avg = points.reduce((a, b) => a + b, 0) / points.length;
-  const avgLine = new Array(points.length).fill(avg);
-  const bestStreakAvgLine = new Array(points.length).fill(streak.avg);
+  const labels = useMemo(() => [...Array(points.length).keys()].map((x) => x + 1), [points]);
+
+  const avg = useMemo(() => points.reduce((a, b) => a + b, 0) / points.length, [points]);
+  const bestFitLine = useMemo(() => calcBestFitPoints(points), [points]);
+  const bestStreakBestFitLine = useMemo(() => calcBestFitPoints(streak.scores), [streak.scores]);
 
   const hitRadius = 8;
   const data = {
@@ -138,12 +172,13 @@ const Graph = () => {
         tension: store.get("graphTension") ?? 0.3,
       },
       {
-        label: `Last ${numberGames} Games Average`,
-        data: avgLine,
+        label: `Trend Over Last ${numberGames} Games`,
+        data: bestFitLine,
         borderColor: "rgb(255, 99, 132, 0.25)",
         backgroundColor: "rgba(255, 99, 132, 0.1)",
-        pointHitRadius: hitRadius,
-        pointHoverRadius: hitRadius,
+        pointRadius: 0,
+        pointHitRadius: 0,
+        pointHoverRadius: 0,
       },
     ],
   };
@@ -159,10 +194,11 @@ const Graph = () => {
       tension: store.get("graphTension") ?? 0.3,
     });
     data.datasets.push({
-      label: "Best Streak Average",
-      data: bestStreakAvgLine,
+      label: "Trend Over Best Streak",
+      data: bestStreakBestFitLine,
       borderColor: "rgb(99, 132, 255, 0.12)",
       backgroundColor: "rgba(99, 132, 255, 0.05)",
+      pointRadius: 0,
       pointHitRadius: hitRadius,
       pointHoverRadius: hitRadius,
     });
