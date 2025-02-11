@@ -50,7 +50,7 @@ const SideBar: React.FC<SideBarProps> = ({
         w-64 z-10 shrink-0
         md:static fixed
         bottom-0 top-0
-        border-r
+        border-r border-gray-200
         flex flex-col
         transition-all
         ${className}`}
@@ -58,13 +58,12 @@ const SideBar: React.FC<SideBarProps> = ({
       <Title onClose={onClose} />
       <nav className="px-3 py-4 grow flex overflow-y-scroll">
         <ul className="space-y-2 font-medium flex flex-col grow">
-          {
-            active.length > 0 ?
-              <>
-                <li key="active-header">Active</li>
-                <hr />
-              </> : null
-          }
+          {active.length > 0 ? (
+            <>
+              <li key="active-header">Active</li>
+              <hr className="border-gray-200" />
+            </>
+          ) : null}
           {active.map((group) => (
             <li key={group.id}>
               <SideBarButton
@@ -74,22 +73,25 @@ const SideBar: React.FC<SideBarProps> = ({
               />
             </li>
           ))}
-          {
-            archived.length > 0 ?
-              <>
-                <li key="archived-header" className="pt-8">Archived</li>
-                <hr />
-              </> : null
-          }
-          {groups.filter((group) => group.archived).map((group) => (
-            <li key={group.id}>
-              <SideBarButton
-                page={`/groups/${group.id}/scoreboard`}
-                onClick={onClose}
-                name={group.name}
-              />
-            </li>
-          ))}
+          {archived.length > 0 ? (
+            <>
+              <li key="archived-header" className="pt-8">
+                Archived
+              </li>
+              <hr className="border-gray-200" />
+            </>
+          ) : null}
+          {groups
+            .filter((group) => group.archived)
+            .map((group) => (
+              <li key={group.id}>
+                <SideBarButton
+                  page={`/groups/${group.id}/scoreboard`}
+                  onClick={onClose}
+                  name={group.name}
+                />
+              </li>
+            ))}
           <li key="space" className="grow flex h-12" />
 
           <li key="random">
@@ -101,11 +103,7 @@ const SideBar: React.FC<SideBarProps> = ({
           </li>
 
           <li key="settings">
-            <SideBarButton
-              page="/settings"
-              name="Settings"
-              onClick={onClose}
-            />
+            <SideBarButton page="/settings" name="Settings" onClick={onClose} />
           </li>
         </ul>
       </nav>

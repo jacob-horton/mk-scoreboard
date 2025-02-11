@@ -41,7 +41,7 @@ export const PlayerCardWithChange: React.FC<PlayerCardWithChangeProps> = ({
     <div
       className="flex items-center
       p-2 md:px-4 md:py-6
-      md:drop-shadow rounded-lg border
+      md:drop-shadow rounded-lg border border-gray-200
       bg-white text-gray-800
       font-light text-base sm:text-lg md:text-2xl"
     >
@@ -85,7 +85,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
     <div
       className="flex items-center
       p-2 md:px-4 md:py-6
-      md:drop-shadow rounded-lg border
+      md:drop-shadow rounded-lg border border-gray-200
       bg-white text-gray-800
       font-light text-base sm:text-lg md:text-2xl"
     >
